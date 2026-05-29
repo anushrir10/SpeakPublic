@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "FixIt — Active-learning reader designed for NCERT textbooks.",
   "scripts": {
-    "dev": "npx -y sirv-cli landing --port 3000 --dev --cors --open"
+    "dev": "npx -y sirv-cli landing --port 3000 --dev --cors --open",
+    "start": "npx -y sirv-cli landing --port ${PORT:-3000}",
+    "build": "echo 'Static project: no build required'"
   },
   "keywords": [
     "education",
