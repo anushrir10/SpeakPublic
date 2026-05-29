@@ -1,0 +1,17 @@
+{
+  "name": "fixit-base",
+  "version": "1.0.0",
+  "description": "FixIt — Active-learning reader designed for NCERT textbooks.",
+  "scripts": {
+    "dev": "npx -y sirv-cli landing --port 3000 --dev --cors --open"
+  },
+  "keywords": [
+    "education",
+    "ncert",
+    "rsvp-reading",
+    "spaced-repetition",
+    "cognitive-accessibility"
+  ],
+  "author": "",
+  "license": "MIT"
+}
