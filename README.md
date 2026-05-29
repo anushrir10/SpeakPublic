@@ -20,7 +20,7 @@ graph TD
         E[pgvector Embedding Storage]
     end
     subgraph AI & Cognitive API Layer
-        F[Claude API - Sonnet/Opus]
+        F[LLM API - Reasoning/Fast]
         G[OpenAI Whisper API]
         H[Google Cloud TTS / Sarvam AI]
     end
@@ -37,7 +37,7 @@ graph TD
 ### Technology Stack
 * **Frontend**: **Flutter** (a single codebase targeting Android, iOS, and Web). Flutter's canvas-level rendering engine provides superior performance for custom animations (such as RSVP speed reading and radial/circular gesture menus) compared to standard web view layers.
 * **Backend & Database**: **Supabase**. Provides instant authentication, file storage for cached TTS assets, row-level security policies, and a managed PostgreSQL instance with `pgvector` enabled out of the box.
-* **AI Cognitive Layer**: **Claude API** (Anthropic Claude 3.5 Sonnet for optimal cost-performance; Claude 3 Opus for deep, complex concept extraction).
+* **AI Cognitive Layer**: **LLM API** (using state-of-the-art models optimized for cost-performance and deep reasoning).
 * **Audio Layer**: **OpenAI Whisper** for video transcibing + **Google Cloud TTS** / **Sarvam AI** for cost-efficient speech synthesis including regional Indian languages (Hindi, etc.).
 * **Media & CDN**: **Cloudflare R2** for highly optimized, zero-egress cost storage of student-uploaded video content.
 
@@ -60,7 +60,7 @@ graph TD
 * **Punctuation Delay**: To simulate normal cognitive reading pauses, duration is increased by `1.5x` for commas/colons and `2.0x` for periods/question marks.
 
 ### D. Spaced Repetition (FSRS)
-* **Generation**: Contextual quizzes are generated on-demand using Claude JSON structured outputs:
+* **Generation**: Contextual quizzes are generated on-demand using structured AI JSON outputs:
   ```json
   {
     "flashcards": [
@@ -75,12 +75,12 @@ graph TD
 
 ### E. Concept Mind Mapping
 * **Pre-processing**: Textbook chapters are pre-split into conceptual chunks. Each chunk is passed through an embedding model (e.g., `text-embedding-3-small` or `voyage-3`) and saved in `pgvector`.
-* **Graphing**: Selecting text extracts its concept embedding, queries `pgvector` using cosine similarity for the top-k nearest concepts, and utilizes Claude to identify and label the link relationships (e.g., `"causes"`, `"mitigates"`, `"example of"`).
+* **Graphing**: Selecting text extracts its concept embedding, queries `pgvector` using cosine similarity for the top-k nearest concepts, and utilizes the AI to identify and label the link relationships (e.g., `"causes"`, `"mitigates"`, `"example of"`).
 * **Render**: Visualized using a force-directed layout engine (e.g., D3-based graphs or `graphview` in Flutter).
 
 ### F. Simplified Learning ("ELI5")
-* **Mechanism**: On-demand Claude prompts that break down jargon. Supports tiered explanations (ELI5, Analogy, Deep-Dive).
-* **Cost Saving**: Employs **Claude prompt caching** by loading the textbook chapter context into cache and varying only the highlighted segment, cutting token costs by up to 80%.
+* **Mechanism**: On-demand AI prompts that break down jargon. Supports tiered explanations (ELI5, Analogy, Deep-Dive).
+* **Cost Saving**: Employs **prompt caching** by loading the textbook chapter context into cache and varying only the highlighted segment, cutting token costs by up to 80%.
 
 ---
 
@@ -89,8 +89,8 @@ graph TD
 Operating at a target consumer price point of **₹99/month**, AI token limits must be managed strictly.
 
 1. **Massive Pre-computation**: Flashcards, mind-map nodes, auditory cache files, and simplified summaries for standard NCERT textbooks are computed **once** in the background and served statically. Individual API requests are reserved for user-generated text selections.
-2. **Claude Prompt Caching**: System prompts and static chapters are pinned in prompt cache.
-3. **Claude Batch API**: Flashcard and concept generation for new textbooks are batched in overnight runs, utilizing Anthropic's Batch API for a **50% discount**.
+2. **Prompt Caching**: System prompts and static chapters are pinned in prompt cache.
+3. **AI Batch API**: Flashcard and concept generation for new textbooks are batched in overnight runs, utilizing asynchronous batch APIs for a **50% discount**.
 4. **Target Cost**: ₹15–25 per active user per month.
 
 ---
@@ -106,7 +106,7 @@ Operating at a target consumer price point of **₹99/month**, AI token limits m
 ## 5. Getting Started
 
 ### Local Landing Page Server
-To preview the interactive Claude-style landing page locally:
+To preview the interactive landing page locally:
 1. Ensure Node.js is installed.
 2. Install dependencies:
    ```bash

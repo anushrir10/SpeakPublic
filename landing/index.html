@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FixIt — Active-learning reader designed for NCERT textbooks</title>
-  <meta name="description" content="Rewire the way you learn. FixIt is an adaptive, cognitive-focused textbook reader featuring RSVP speed-reading, auditory caching, FSRS spaced repetition, and concept mapping. Optimized for CBSE students.">
+  <meta name="description" content="Rewire the way you learn. FixIt is an adaptive, cognitive-focused textbook reader featuring RSVP speed-reading, auditory caching, adaptive spaced repetition, and concept mapping. Optimized for CBSE students.">
   
   <!-- SEO Open Graph -->
   <meta property="og:title" content="FixIt — Active-learning reader designed for NCERT textbooks">
@@ -100,7 +100,7 @@
           <button class="tab-button" id="tab-spaced" role="tab" aria-selected="false" aria-controls="panel-spaced">
             <span class="tab-number">04</span>
             <div class="tab-info">
-              <span class="tab-title">Spaced Repetition (FSRS)</span>
+              <span class="tab-title">Spaced Repetition (Adaptive)</span>
               <span class="tab-desc">Active recall quiz generator</span>
             </div>
           </button>
@@ -174,11 +174,11 @@
                   </div>
                 </div>
 
-                <!-- Simulating Claude Simplify / ELI5 Modal -->
+                <!-- Simulating AI Simplify / ELI5 Modal -->
                 <div class="simplify-modal-overlay hidden" id="simplify-modal">
                   <div class="simplify-content">
                     <div class="simplify-header">
-                      <h3>🧠 Claude AI Simplified breakdown</h3>
+                      <h3>🧠 AI-Powered Breakdown</h3>
                       <button class="close-btn" id="close-simplify-btn" aria-label="Close modal">&times;</button>
                     </div>
                     <div class="simplify-body">
@@ -348,7 +348,7 @@
                   <div class="success-content">
                     <span class="success-icon">🏆</span>
                     <h3>Review Session Completed!</h3>
-                    <p>FSRS algorithms updated your card scheduling states in PostgreSQL.</p>
+                    <p>Adaptive algorithms updated your card scheduling states in the local database.</p>
                     <button class="btn btn-secondary" id="restart-spaced-btn">Reset Cards</button>
                   </div>
                 </div>
@@ -423,14 +423,14 @@
 
         <div class="blueprint-card" id="bp-card-2">
           <div class="bp-icon">🚀</div>
-          <h3>FSRS Adaptive Engine</h3>
-          <p>We skip custom spaced repetition systems and employ the modern <b>FSRS (Free Spaced Repetition Scheduler)</b> mathematical model. It yields better memory retention and recall stability than legacy algorithms (like SM-2) and syncs instantly to PostgreSQL tables.</p>
+          <h3>Adaptive Recall Engine</h3>
+          <p>We use a modern scheduling model that adjusts to how well you recall concepts. It yields better memory retention and recall stability than legacy methods, syncing instantly with your study profile.</p>
         </div>
 
         <div class="blueprint-card" id="bp-card-3">
           <div class="bp-icon">⚡</div>
-          <h3>Claude Prompt Optimizations</h3>
-          <p>Using Claude 3.5 Sonnet's prompt caching features, we pin textbook chapters and system instructions directly into Anthropic's memory. This delivers a <b>90% reduction</b> in input token pricing and results in sub-second generation times for simplified summaries.</p>
+          <h3>Smart Prompt Caching</h3>
+          <p>By pinning textbook chapters and system instructions directly into the AI's prompt cache, we achieve sub-second response times and a <b>90% reduction</b> in raw API token costs for summaries.</p>
         </div>
       </div>
     </div>
@@ -454,7 +454,7 @@
           </div>
           <div class="metric-item">
             <span class="metric-value">80%</span>
-            <span class="metric-label">Claude API savings via prompt caching</span>
+            <span class="metric-label">API savings via prompt caching</span>
           </div>
         </div>
 

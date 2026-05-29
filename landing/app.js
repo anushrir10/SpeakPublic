@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'tab-menu': 'Active Textbook: Cell Biology Class XI',
     'tab-rsvp': 'Speed Reader: RSVP Cognitive Sync',
     'tab-auditory': 'Auditory Reader: Cached TTS Sync',
-    'tab-spaced': 'Spaced Repetition: FSRS Self-Assessment',
-    'tab-mindmap': 'Concept Map: pgvector Semantic Relationships'
+    'tab-spaced': 'Spaced Repetition: Adaptive Recall Quiz',
+    'tab-mindmap': 'Concept Map: Interactive Concept Connections'
   };
 
   tabs.forEach(tab => {

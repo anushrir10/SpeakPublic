@@ -1,5 +1,5 @@
 /* ==========================================================================
-   FixIt Custom Stylesheet — Modern, Warm, Editorial & Claude-inspired Design
+   FixIt Custom Stylesheet — Modern, Warm, Editorial & Clean Design
    ========================================================================== */
 
 /* Design Tokens & Custom Variables */
@@ -589,7 +589,7 @@ a:hover {
   font-size: 15px;
 }
 
-/* Simulated Claude Simplify Modal */
+/* Simulated AI Simplify Modal */
 .simplify-modal-overlay {
   position: absolute;
   top: 0;
@@ -1546,6 +1546,12 @@ a:hover {
     max-width: 320px;
     margin: 0 auto;
     gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-link {
+    display: none;
   }
 }
 
