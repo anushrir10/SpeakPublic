@@ -1,0 +1,11 @@
+{
+  "name": "@fixit/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Next.js will be scaffolded here'",
+    "build": "echo 'Build Next.js'",
+    "type-check": "echo 'Type check'",
+    "lint": "echo 'Lint'"
+  }
+}

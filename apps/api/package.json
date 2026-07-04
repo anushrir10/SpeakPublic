@@ -1,0 +1,11 @@
+{
+  "name": "@fixit/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo 'Express will be scaffolded here'",
+    "build": "echo 'Build Express'",
+    "type-check": "echo 'Type check'",
+    "lint": "echo 'Lint'"
+  }
+}

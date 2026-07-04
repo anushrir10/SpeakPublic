@@ -1,19 +1,19 @@
 {
-  "name": "fixit-base",
-  "version": "1.0.0",
-  "description": "FixIt — Active-learning reader designed for NCERT textbooks.",
+  "name": "fixit",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
-    "dev": "npx -y sirv-cli landing --port 3000 --dev --cors --open",
-    "start": "npx -y sirv-cli landing --port ${PORT:-3000}",
-    "build": "echo 'Static project: no build required'"
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "type-check": "turbo run type-check",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "clean": "turbo run clean && rm -rf node_modules"
   },
-  "keywords": [
-    "education",
-    "ncert",
-    "rsvp-reading",
-    "spaced-repetition",
-    "cognitive-accessibility"
-  ],
-  "author": "",
-  "license": "MIT"
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "prettier": "^3.0.0"
+  }
 }
