@@ -10,7 +10,9 @@
     "type-check": "turbo run type-check",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:migrate": "pnpm --filter @fixit/db migrate",
+    "db:push": "pnpm --filter @fixit/db prisma db push"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  flashcardProgress FlashcardProgress[]
+  fsrsState         FSRSState[]
+  analyticsEvents   AnalyticsEvent[]
+
+  @@map("users")
+}
+
+model ContentChunk {
+  id        String   @id @default(cuid())
+  text      String   @db.Text
+  chapterId String
+  order     Int
+  createdAt DateTime @default(now())
+
+  // Relations
+  embedding        Embedding?
+  flashcards       Flashcard[]
+  simplifications  SimplifiedContent[]
+  analyticsEvents  AnalyticsEvent[]
+
+  @@map("content_chunks")
+}
+
+model Embedding {
+  id        String   @id @default(cuid())
+  chunkId   String   @unique
+  embedding Unsupported("vector")?
+  createdAt DateTime @default(now())
+
+  // Relations
+  chunk ContentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+
+  @@map("embeddings")
+}
+
+model Flashcard {
+  id        String   @id @default(cuid())
+  chunkId   String
+  question  String   @db.Text
+  answer    String   @db.Text
+  difficulty String  // easy, medium, hard
+  type      String   // qa or mcq
+  options   Json?    // for MCQ: ["option1", "option2", "option3", "option4"]
+  createdAt DateTime @default(now())
+
+  // Relations
+  chunk            ContentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  progress         FlashcardProgress[]
+  fsrsState        FSRSState[]
+
+  @@map("flashcards")
+}
+
+model FlashcardProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  flashcardId String
+  reviewCount Int      @default(0)
+  lastReviewed DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flashcard  Flashcard   @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, flashcardId])
+  @@map("flashcard_progress")
+}
+
+model FSRSState {
+  id          String   @id @default(cuid())
+  userId      String
+  flashcardId String
+  ease        Float    @default(2.5)
+  interval    Int      @default(1)
+  nextReview  DateTime @default(now())
+  reps        Int      @default(0)
+  lapses      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  flashcard  Flashcard  @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, flashcardId])
+  @@map("fsrs_state")
+}
+
+model SimplifiedContent {
+  id        String   @id @default(cuid())
+  chunkId   String
+  tier      String   // eli5, standard, advanced
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  // Relations
+  chunk ContentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+
+  @@unique([chunkId, tier])
+  @@map("simplified_content")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  eventType String   // "view", "review", "simplify", etc
+  chunkId   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunk     ContentChunk?  @relation(fields: [chunkId], references: [id], onDelete: SetNull)
+
+  @@map("analytics_events")
+}

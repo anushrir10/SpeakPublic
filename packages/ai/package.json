@@ -1,5 +1,9 @@
 {
   "name": "@fixit/ai",
   "version": "0.1.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "dev": "echo 'AI will be scaffolded here'",
+    "build": "echo 'Build AI'"
+  }
 }
