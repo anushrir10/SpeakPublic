@@ -25,60 +25,79 @@ model User {
   @@map("users")
 }
 
-model ContentChunk {
+model Chapter {
   id        String   @id @default(cuid())
-  text      String   @db.Text
-  chapterId String
-  order     Int
+  number    Int      @unique
+  title     String
+  subject   String   @default("Biology")
+  grade     String   @default("Class 12")
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  embedding        Embedding?
+  chunks    Chunk[]
+
+  @@map("chapters")
+}
+
+model Chunk {
+  id          String   @id @default(cuid())
+  chapterId   String
+  sectionRef  String
+  content     String   @db.Text
+  tokenCount  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  chapter          Chapter             @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  embeddings       ChunkEmbedding[]
   flashcards       Flashcard[]
   simplifications  SimplifiedContent[]
   analyticsEvents  AnalyticsEvent[]
 
-  @@map("content_chunks")
+  @@map("chunks")
 }
 
-model Embedding {
+model ChunkEmbedding {
   id        String   @id @default(cuid())
   chunkId   String   @unique
-  embedding Unsupported("vector")?
+  vector    Unsupported("vector(1536)")?
+  model     String   @default("text-embedding-3-small")
   createdAt DateTime @default(now())
 
   // Relations
-  chunk ContentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  chunk     Chunk    @relation(fields: [chunkId], references: [id], onDelete: Cascade)
 
-  @@map("embeddings")
+  @@map("chunk_embeddings")
 }
 
 model Flashcard {
-  id        String   @id @default(cuid())
-  chunkId   String
-  question  String   @db.Text
-  answer    String   @db.Text
-  difficulty String  // easy, medium, hard
-  type      String   // qa or mcq
-  options   Json?    // for MCQ: ["option1", "option2", "option3", "option4"]
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  chunkId    String
+  question   String   @db.Text
+  answer     String   @db.Text
+  difficulty String   // easy, medium, hard
+  type       String   // qa or mcq
+  options    Json?    // for MCQ: ["option1", "option2", "option3", "option4"]
+  createdAt  DateTime @default(now())
 
   // Relations
-  chunk            ContentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
-  progress         FlashcardProgress[]
-  fsrsState        FSRSState[]
+  chunk       Chunk               @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  progress    FlashcardProgress[]
+  fsrsState   FSRSState[]
 
   @@map("flashcards")
 }
 
 model FlashcardProgress {
-  id          String   @id @default(cuid())
-  userId      String
-  flashcardId String
-  reviewCount Int      @default(0)
+  id           String    @id @default(cuid())
+  userId       String
+  flashcardId  String
+  reviewCount  Int       @default(0)
   lastReviewed DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Relations
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -116,7 +135,7 @@ model SimplifiedContent {
   createdAt DateTime @default(now())
 
   // Relations
-  chunk ContentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  chunk Chunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
 
   @@unique([chunkId, tier])
   @@map("simplified_content")
@@ -131,50 +150,8 @@ model AnalyticsEvent {
   createdAt DateTime @default(now())
 
   // Relations
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chunk     ContentChunk?  @relation(fields: [chunkId], references: [id], onDelete: SetNull)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunk Chunk? @relation(fields: [chunkId], references: [id], onDelete: SetNull)
 
   @@map("analytics_events")
 }
-
-model Chapter {
-  id        String   @id @default(cuid())
-  number    Int      @unique
-  title     String
-  subject   String   @default("Biology")
-  grade     String   @default("Class 12")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  chunks    Chunk[]
-
-  @@map("chapters")
-}
-
-model Chunk {
-  id          String   @id @default(cuid())
-  chapterId   String
-  sectionRef  String
-  content     String   @db.Text
-  tokenCount  Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  embeddings  ChunkEmbedding[]
-
-  @@map("chunks")
-}
-
-model ChunkEmbedding {
-  id        String   @id @default(cuid())
-  chunkId   String   @unique
-  vector    Unsupported("vector(1536)")?
-  model     String   @default("text-embedding-3-small")
-  createdAt DateTime @default(now())
-
-  // Relations
-  chunk     Chunk    @relation(fields: [chunkId], references: [id], onDelete: Cascade)
-
-  @@map("chunk_embeddings")
-}
