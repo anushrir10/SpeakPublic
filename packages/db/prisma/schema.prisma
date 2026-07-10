@@ -136,3 +136,45 @@ model AnalyticsEvent {
 
   @@map("analytics_events")
 }
+
+model Chapter {
+  id        String   @id @default(cuid())
+  number    Int      @unique
+  title     String
+  subject   String   @default("Biology")
+  grade     String   @default("Class 12")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  chunks    Chunk[]
+
+  @@map("chapters")
+}
+
+model Chunk {
+  id          String   @id @default(cuid())
+  chapterId   String
+  sectionRef  String
+  content     String   @db.Text
+  tokenCount  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  chapter     Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  embeddings  ChunkEmbedding[]
+
+  @@map("chunks")
+}
+
+model ChunkEmbedding {
+  id        String   @id @default(cuid())
+  chunkId   String   @unique
+  vector    Unsupported("vector(1536)")?
+  model     String   @default("text-embedding-3-small")
+  createdAt DateTime @default(now())
+
+  // Relations
+  chunk     Chunk    @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+
+  @@map("chunk_embeddings")
+}
