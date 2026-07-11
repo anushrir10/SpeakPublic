@@ -12,7 +12,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "clean": "turbo run clean && rm -rf node_modules",
     "db:migrate": "pnpm --filter @fixit/db migrate",
-    "db:push": "pnpm --filter @fixit/db prisma db push"
+    "db:push": "pnpm --filter @fixit/db prisma db push",
+    "db:seed": "pnpm --filter @fixit/db db:seed"
   },
   "devDependencies": {
     "prettier": "^3.0.0",

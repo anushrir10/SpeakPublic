@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
+dotenv.config();
 
 import express from "express";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
