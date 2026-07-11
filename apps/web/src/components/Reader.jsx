@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useLearning } from "../context/LearningContext";
-import { CaretLeft, CaretRight, BookOpen, FileText, ArrowLeft, Stack, FloppyDisk, Trash, X, Sparkle, MagnifyingGlass, CursorText, NotePencil, ArrowRight } from "@phosphor-icons/react";
-import { retrieveContent } from "../services/api";
+import { CaretLeft, CaretRight, BookOpen, FileText, ArrowLeft, Stack, FloppyDisk, Trash, X, Sparkle, MagnifyingGlass, CursorText, NotePencil, ArrowRight, ChatCircleDots } from "@phosphor-icons/react";
+import { retrieveContent, fetchChunks } from "../services/api";
+import { useChapters } from "../hooks/useChapters";
 import CentralStudyCard from "./CentralStudyCard";
 import ThemeToggle from "./ThemeToggle";
+import ChapterNav from "./ChapterNav";
+import ContextualPanel from "./ContextualPanel";
 
 export default function Reader() {
   const {
@@ -19,6 +22,15 @@ export default function Reader() {
 
   // Floating selection popover position (viewport coords)
   const [selPos, setSelPos] = useState(null);
+
+  // Chapter navigation (Week 2) — live from /api/chapters, or local fallback
+  const { chapters, loading: chaptersLoading, isFallback: chaptersFallback } = useChapters(activeBook);
+  const [selectedChapterId, setSelectedChapterId] = useState(null); // set when a live chapter is chosen
+  const [apiChunks, setApiChunks] = useState(null); // Chunk[] when a live chapter is loaded
+
+  // Contextual "Ask" side panel — the shell Week 3 AI Q&A streams into
+  const [askOpen, setAskOpen] = useState(false);
+  const [askSelection, setAskSelection] = useState("");
 
   // Mobile viewport tab: 'book' | 'summary'
   const [mobileTab, setMobileTab] = useState("book");
@@ -88,6 +100,12 @@ export default function Reader() {
   const currentPage = activeBook.pages.find(p => p.pageNumber === activePageNum) || activeBook.pages[0];
   const conceptMap = currentPage?.concepts || {};
 
+  // Derived active chapter (no effect): fallback chapters map 1:1 to pages,
+  // live chapters follow the user's explicit selection.
+  const activeChapterId = chaptersFallback
+    ? (chapters.find((c) => c.__pageNumber === activePageNum)?.id ?? chapters[0]?.id ?? null)
+    : (selectedChapterId ?? chapters[0]?.id ?? null);
+
   // Monitor text selections in the summary pane
   const handleTextSelection = () => {
     const selection = window.getSelection();
@@ -118,6 +136,29 @@ export default function Reader() {
     }
     // No valid selection -> hide the floating action
     setSelPos(null);
+  };
+
+  // Chapter selection: local sections jump to a page; live chapters load chunks
+  const handleSelectChapter = async (chapter) => {
+    if (chapter.__local) {
+      setApiChunks(null);
+      if (chapter.__pageNumber) setActivePageNum(chapter.__pageNumber);
+    } else {
+      // Live chapter from /api/chapters → fetch its chunks (Week 3 renders full content)
+      setSelectedChapterId(chapter.id);
+      setApiChunks(null);
+      const chunks = await fetchChunks(chapter.id);
+      setApiChunks(chunks || []);
+    }
+  };
+
+  // Open the contextual Ask panel for the current selection
+  const handleAsk = () => {
+    if (!selectionText) return;
+    setAskSelection(selectionText);
+    setAskOpen(true);
+    setSelPos(null);
+    window.getSelection()?.removeAllRanges();
   };
 
   // Quick action: selected text -> flashcard/study card
@@ -508,16 +549,25 @@ export default function Reader() {
 
       {/* Top Bar */}
       <div className="w-full bg-white border border-[#E6E2D6] shadow-sm px-5 py-2.5 flex justify-between items-center z-10 relative rounded-2xl">
-        <button
-          id="reader-back"
-          onClick={() => setActiveBook(null)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium tracking-wide text-stone-600 bg-white border border-[#E6E2D6] rounded-xl shadow-sm hover:border-clay/50 hover:text-clay-dark transition cursor-pointer"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Bookshelf
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            id="reader-back"
+            onClick={() => setActiveBook(null)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium tracking-wide text-stone-600 bg-white border border-[#E6E2D6] rounded-xl shadow-sm hover:border-clay/50 hover:text-clay-dark transition cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Bookshelf
+          </button>
+          <ChapterNav
+            chapters={chapters}
+            activeChapterId={activeChapterId}
+            onSelect={handleSelectChapter}
+            loading={chaptersLoading}
+            isFallback={chaptersFallback}
+          />
+        </div>
 
-        <div className="text-center">
+        <div className="text-center hidden lg:block">
           <span className="text-[10px] uppercase font-semibold text-clay font-body block tracking-[0.15em] leading-none mb-0.5">
             {activeBook.board} • {activeBook.grade}
           </span>
@@ -621,9 +671,19 @@ export default function Reader() {
               </span>
             </div>
 
-            {/* Render parsed summary */}
+            {/* Render live chapter chunks when available, else the local summary */}
             <div className="prose max-w-none">
-              {parseInteractiveText(currentPage.interactiveSummary)}
+              {apiChunks && apiChunks.length > 0
+                ? apiChunks.map((ch) => (
+                    <p
+                      key={ch.id}
+                      data-section={ch.sectionRef}
+                      className="mb-4 leading-relaxed text-sm md:text-base text-stone-800"
+                    >
+                      {ch.content}
+                    </p>
+                  ))
+                : parseInteractiveText(currentPage.interactiveSummary)}
             </div>
           </div>
 
@@ -671,24 +731,51 @@ export default function Reader() {
         </button>
       </div>
 
-      {/* Floating select-to-flashcard action */}
+      {/* Floating selection actions */}
       {selPos && selectionText && (
         <div
           className="fixed z-[60] animate-pop-in"
           style={{ left: selPos.x, top: selPos.y - 10, transform: "translate(-50%, -100%)" }}
         >
-          <button
-            id="selection-flashcard"
+          <div
             onMouseDown={(e) => e.preventDefault()}
-            onClick={handleQuickStudy}
-            className="flex items-center gap-1.5 pl-3 pr-3.5 py-2 rounded-full bg-clay text-white text-xs font-semibold font-body shadow-[0_10px_24px_-8px_rgba(217,119,87,0.8)] hover:bg-clay-dark transition cursor-pointer"
+            className="flex items-stretch rounded-full bg-clay text-white text-xs font-semibold font-body shadow-[0_10px_24px_-8px_rgba(217,119,87,0.8)] overflow-hidden"
           >
-            <Sparkle className="w-3.5 h-3.5" weight="fill" />
-            Make flashcard
-          </button>
+            <button
+              id="selection-ask"
+              onClick={handleAsk}
+              className="flex items-center gap-1.5 pl-3.5 pr-3 py-2 hover:bg-clay-dark transition cursor-pointer"
+            >
+              <ChatCircleDots className="w-3.5 h-3.5" weight="fill" />
+              Ask FixIt
+            </button>
+            <span className="w-px my-1.5 bg-white/30" />
+            <button
+              id="selection-flashcard"
+              onClick={handleQuickStudy}
+              className="flex items-center gap-1.5 pl-3 pr-3.5 py-2 hover:bg-clay-dark transition cursor-pointer"
+            >
+              <Sparkle className="w-3.5 h-3.5" weight="fill" />
+              Flashcard
+            </button>
+          </div>
           <div className="w-2.5 h-2.5 bg-clay rotate-45 mx-auto -mt-1"></div>
         </div>
       )}
+
+      {/* Contextual side panel shell (Week 3 AI Q&A container) */}
+      <ContextualPanel
+        key={askSelection}
+        open={askOpen}
+        selection={askSelection}
+        chapterTitle={activeBook.title}
+        onClose={() => setAskOpen(false)}
+        onMakeFlashcard={() => {
+          setAskOpen(false);
+          applyHighlightAndStudy(askSelection);
+          setActiveTab("flashcard");
+        }}
+      />
 
     </div>
   );
