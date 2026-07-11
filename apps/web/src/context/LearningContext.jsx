@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { textbooks } from "../data/textbooks";
-import { setAuthTokenGetter } from "../services/api";
+import { setAuthTokenGetter, retrieveContent, generateStudyCard } from "../services/api";
 
 // Determine if Clerk is enabled at module load time
 const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -106,8 +106,10 @@ const SharedProvider = ({ children, user, login, logout: logoutFn, isClerkMode }
   const [activePageNum, setActivePageNum] = useState(1);
   const [activeConceptKey, setActiveConceptKey] = useState(null);
   const [activeCustomConcept, setActiveCustomConcept] = useState(null);
+  const [activeConceptDetail, setActiveConceptDetail] = useState(null);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("definition");
+  const [retrievedChunks, setRetrievedChunks] = useState([]);
 
   // MCQ completion tracker
   const [completedMCQs, setCompletedMCQs] = useState(() => {
@@ -143,15 +145,109 @@ const SharedProvider = ({ children, user, login, logout: logoutFn, isClerkMode }
   };
 
   const selectConcept = (conceptKeyOrObject) => {
+    let term = "";
     if (typeof conceptKeyOrObject === "string") {
       setActiveConceptKey(conceptKeyOrObject);
       setActiveCustomConcept(null);
+      const pg = activeBook?.pages?.find(p => p.pageNumber === activePageNum);
+      const concept = pg?.concepts?.[conceptKeyOrObject] || pg?.concepts?.[conceptKeyOrObject.toLowerCase()];
+      if (concept) {
+        const conceptCopy = {
+          ...concept,
+          definition: `Searching textbook passages for the definition...`,
+          flashcard: {
+            ...concept.flashcard,
+            back: `Searching textbook passages for the answer...`
+          }
+        };
+        setActiveConceptDetail(conceptCopy);
+        term = concept.term || conceptKeyOrObject;
+      } else {
+        const fallbackConcept = {
+          term: conceptKeyOrObject,
+          definition: `Searching textbook passages for the definition...`,
+          flashcard: {
+            front: `What is the significance of "${conceptKeyOrObject}"?`,
+            back: `Searching textbook passages for the answer...`
+          },
+          mcq: {
+            question: `Based on your reading, which of the following is associated with "${conceptKeyOrObject}"?`,
+            options: ["It is a key concept in this chapter", "It is an unrelated term", "None of the above"],
+            correctIndex: 0,
+            explanation: `You selected "${conceptKeyOrObject}" for study.`
+          }
+        };
+        setActiveConceptDetail(fallbackConcept);
+        term = conceptKeyOrObject;
+      }
     } else {
       setActiveConceptKey("custom");
       setActiveCustomConcept(conceptKeyOrObject);
+      setActiveConceptDetail(conceptKeyOrObject);
+      term = conceptKeyOrObject.term;
     }
     setSidePanelOpen(true);
     setActiveTab("definition");
+
+    setRetrievedChunks([]);
+    if (term) {
+      retrieveContent(term).then(results => {
+        if (results) {
+          setRetrievedChunks(results);
+          
+          // Generate dynamic, context-aware definition, flashcard & MCQ quiz from retrieved textbook chunks
+          generateStudyCard(term, results).then(card => {
+            if (card) {
+              setActiveConceptDetail(prev => {
+                if (!prev || prev.term !== term) return prev;
+                
+                const isDefault = 
+                  prev.definition.includes("Searching textbook") || 
+                  prev.definition.includes("You highlighted the phrase") ||
+                  prev.definition.includes("this represents a key detail selected for study") ||
+                  prev.definition.includes("this represents a specific detail selected for review");
+                const hasUserNote = !isDefault && (prev.definition.includes("Study Note:") || prev.definition.includes(" - Note:"));
+                
+                return {
+                  ...prev,
+                  definition: hasUserNote ? prev.definition : card.definition,
+                  flashcard: {
+                    ...prev.flashcard,
+                    front: card.flashcard.front || prev.flashcard.front,
+                    back: hasUserNote ? prev.flashcard.back : card.flashcard.back
+                  },
+                  mcq: card.mcq || prev.mcq
+                };
+              });
+
+              if (typeof conceptKeyOrObject !== "string") {
+                setActiveCustomConcept(prev => {
+                  if (!prev || prev.term !== term) return prev;
+                  
+                  const isDefault = 
+                    prev.definition.includes("Searching textbook") || 
+                    prev.definition.includes("You highlighted the phrase") ||
+                    prev.definition.includes("this represents a key detail selected for study") ||
+                    prev.definition.includes("this represents a specific detail selected for review");
+                  const hasUserNote = !isDefault && (prev.definition.includes("Study Note:") || prev.definition.includes(" - Note:"));
+                  
+                  return {
+                    ...prev,
+                    definition: hasUserNote ? prev.definition : card.definition,
+                    flashcard: {
+                      ...prev.flashcard,
+                      front: card.flashcard.front || prev.flashcard.front,
+                      back: hasUserNote ? prev.flashcard.back : card.flashcard.back
+                    },
+                    mcq: card.mcq || prev.mcq
+                  };
+                });
+              }
+            }
+          });
+        }
+      });
+    }
   };
 
   const markMCQComplete = (bookId, conceptKey) => {
@@ -182,10 +278,12 @@ const SharedProvider = ({ children, user, login, logout: logoutFn, isClerkMode }
         activePageNum,
         activeConceptKey,
         activeCustomConcept,
+        activeConceptDetail,
         sidePanelOpen,
         activeTab,
         completedMCQs,
         isClerkMode,
+        retrievedChunks,
         login: login || (() => false),
         onboard,
         selectBook,

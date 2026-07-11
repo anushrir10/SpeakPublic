@@ -10,41 +10,125 @@ dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 const prisma = new PrismaClient();
 
 // Helper to check for section headers and return normalized section reference
-function getSectionHeader(line: string): string | null {
+function getSectionHeader(line: string, chapterNum: number): string | null {
   const trimmed = line.trim();
   
-  // Regex patterns for section numbers
-  if (/^\s*(1\.1)(\s|$)/i.test(trimmed)) {
-    return "Section 1.1: Asexual Reproduction";
+  // Match patterns starting with chapterNum followed by dots and numbers/OCR noise
+  const regex = new RegExp(`^\\s*(${chapterNum}\\s*\\.\\s*[0-9lIJ\\s]+(?:\\.\\s*[0-9lIJ\\s]+)*)(?:\\s|\\.|$)(.*)`, 'i');
+  const match = trimmed.match(regex);
+  if (!match) return null;
+
+  let numPart = match[1].replace(/\s+/g, ''); // Remove spaces inside number
+  const titlePart = match[2].trim();
+
+  // Normalize characters to digits in the section number
+  numPart = numPart
+    .replace(/l/g, '1')
+    .replace(/I/g, '1')
+    .replace(/J/g, '1')
+    .replace(/\.$/, ''); // remove trailing dot
+
+  // Specific OCR fixes
+  if (chapterNum === 1) {
+    numPart = numPart.replace(/^1\.2\.8\./, '1.2.3.');
+    if (numPart === '1.6' || numPart === '1.7') {
+      return null; // Noise
+    }
   }
-  if (/^\s*(1\.2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2: Sexual Reproduction";
-  }
-  if (/^\s*(1\.2\.1)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.1: Pre-fertilisation Events";
-  }
-  if (/^\s*(1\.2\.1\.1)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.1.1: Gametogenesis";
-  }
-  if (/^\s*(1\.2\.1\.2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.1.2: Gamete Transfer";
-  }
-  if (/^\s*(1\.2\.2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.2: Fertilisation";
-  }
-  if (/^\s*(1\.2\.3)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.3: Post-fertilisation Events";
-  }
-  // Handles OCR errors like 1.2.8. J or 1.2.8. 1
-  if (/^\s*(1\.2\.[83]\s*\.\s*[1J])(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.3.1: The Zygote";
-  }
-  // Handles OCR errors like 1.2.8.2
-  if (/^\s*(1\.2\.[83]\s*\.\s*2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.3.2: Embryogenesis";
+  
+  if (chapterNum === 2) {
+    // Filter out figures/tables like 2.8, 2.9, 2.11, etc.
+    const validPrefixes = ['2.1', '2.2', '2.3', '2.4', '2.5'];
+    if (!validPrefixes.some(pref => numPart.startsWith(pref))) {
+      return null;
+    }
   }
 
-  return null;
+  if (chapterNum === 3) {
+    const validPrefixes = ['3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7'];
+    if (!validPrefixes.some(pref => numPart.startsWith(pref))) {
+      return null;
+    }
+  }
+
+  if (chapterNum === 4) {
+    const validPrefixes = ['4.1', '4.2', '4.3', '4.4', '4.5'];
+    if (!validPrefixes.some(pref => numPart.startsWith(pref))) {
+      return null;
+    }
+  }
+
+  if (chapterNum === 5) {
+    const validPrefixes = ['5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7'];
+    if (!validPrefixes.some(pref => numPart.startsWith(pref))) {
+      return null;
+    }
+  }
+
+  const sectionTitles: Record<string, string> = {
+    // Chapter 1
+    "1.1": "Asexual Reproduction",
+    "1.2": "Sexual Reproduction",
+    "1.2.1": "Pre-fertilisation Events",
+    "1.2.1.1": "Gametogenesis",
+    "1.2.1.2": "Gamete Transfer",
+    "1.2.2": "Fertilisation",
+    "1.2.3": "Post-fertilisation Events",
+    "1.2.3.1": "The Zygote",
+    "1.2.3.2": "Embryogenesis",
+    
+    // Chapter 2
+    "2.1": "Flower - A Fascinating Organ of Angiosperms",
+    "2.2": "Pre-fertilisation: Structures and Events",
+    "2.2.1": "Stamen, Microsporangium and Pollen Grain",
+    "2.2.2": "The Pistil, Megasporangium (ovule) and Embryo Sac",
+    "2.2.3": "Pollination",
+    "2.3": "Double Fertilisation",
+    "2.4": "Post-fertilisation: Structures and Events",
+    "2.4.1": "Endosperm",
+    "2.4.2": "Embryo",
+    "2.4.3": "Seed",
+    "2.5": "Apomixis and Polyembryony",
+
+    // Chapter 3
+    "3.1": "The Male Reproductive System",
+    "3.2": "The Female Reproductive System",
+    "3.3": "Gametogenesis",
+    "3.4": "Menstrual Cycle",
+    "3.5": "Fertilisation and Implantation",
+    "3.6": "Pregnancy and Embryonic Development",
+    "3.7": "Parturition and Lactation",
+
+    // Chapter 4
+    "4.1": "Reproductive Health - Problems and Strategies",
+    "4.2": "Population Explosion and Birth Control",
+    "4.3": "Medical Termination of Pregnancy",
+    "4.4": "Sexually Transmitted Diseases (STDs)",
+    "4.5": "Infertility",
+
+    // Chapter 5
+    "5.1": "Mendel's Laws of Inheritance",
+    "5.2": "Inheritance of One Gene",
+    "5.2.1": "Law of Dominance",
+    "5.2.2": "Law of Segregation",
+    "5.2.2.1": "Incomplete Dominance",
+    "5.2.2.2": "Co-dominance",
+    "5.3": "Inheritance of Two Genes",
+    "5.3.2": "Chromosomal Theory of Inheritance",
+    "5.4": "Sex Determination",
+    "5.4.1": "Sex Determination in Humans",
+    "5.5": "Mutation",
+    "5.6": "Genetic Disorders",
+    "5.6.1": "Pedigree Analysis",
+    "5.6.3": "Chromosomal Disorders",
+  };
+
+  const title = sectionTitles[numPart];
+  if (title) {
+    return `Section ${numPart}: ${title}`;
+  }
+  
+  return `Section ${numPart}${titlePart ? ': ' + titlePart : ''}`;
 }
 
 // Helper to check if a line is a header, footer, page number, or figure caption
@@ -54,8 +138,20 @@ function isNoiseLine(line: string): boolean {
   // Empty line
   if (!trimmed) return true;
   
-  // Page headers/footers
-  if (/^81010GY$/i.test(trimmed) || /^BIOLOGY$/i.test(trimmed) || /^reproduction in organisms$/i.test(trimmed)) {
+  // Page headers/footers / Chapter headers
+  const noisePatterns = [
+    /^81010GY$/i,
+    /^BIOLOGY$/i,
+    /^reproduction in organisms$/i,
+    /^sexual reproduction in flowering plants$/i,
+    /^human reproduction$/i,
+    /^reproductive health$/i,
+    /^principles of inheritance and variation$/i,
+    /^chapter\s+\d+$/i,
+    /^chapter:\d+$/i,
+    /^chapter\s+[ivxldcm]+$/i
+  ];
+  if (noisePatterns.some(pat => pat.test(trimmed))) {
     return true;
   }
   
@@ -70,7 +166,8 @@ function isNoiseLine(line: string): boolean {
   }
   
   // OCR trash/single marks
-  if (trimmed === "•" || trimmed === "" || trimmed === "I" || trimmed === "r" || trimmed === "j") {
+  const trash = ["•", "", "I", "r", "j", "_I", "i I", "j", "Parent cell", "(a)", "(b)", "(c)", "(d)", "(e)"];
+  if (trash.includes(trimmed)) {
     return true;
   }
   
@@ -88,36 +185,21 @@ function splitIntoSentences(text: string): string[] {
   return text.match(/[^.!?]+[.!?]+(\s|$)/g) || [text];
 }
 
-async function main() {
-  const args = process.argv.slice(2);
-  const chapterArg = args.find(arg => arg.startsWith("--chapter="))?.split("=")[1];
+async function processChapter(chapterNum: number, chapterTitle: string, lines: string[]) {
+  console.log(`\n--- Processing Chapter ${chapterNum}: ${chapterTitle} ---`);
+  
+  // Find start and end of Chapter (case-sensitive to avoid matching the contents index)
+  const startIndex = lines.findIndex(l => l.trim() === `CHAPTER ${chapterNum}`);
+  const nextChapterNum = chapterNum + 1;
+  const endIndex = lines.findIndex((l, idx) => idx > startIndex && l.trim() === `CHAPTER ${nextChapterNum}`);
 
-  if (!chapterArg || chapterArg !== "bio-ch1") {
-    console.error("Usage: pnpm run chunk -- --chapter=bio-ch1");
+  if (startIndex === -1) {
+    console.error(`Could not find start of Chapter ${chapterNum} in the source text.`);
     process.exit(1);
   }
 
-  const filePath = path.resolve(__dirname, "../data/bio-ch1.txt");
-  if (!fs.existsSync(filePath)) {
-    console.error(`Source text file not found at: ${filePath}. Please run extract-chapter1 first.`);
-    process.exit(1);
-  }
-
-  console.log(`Reading source text from: ${filePath}`);
-  const fullText = fs.readFileSync(filePath, "utf-8");
-  const lines = fullText.split(/\r?\n/);
-
-  // Find start and end of Chapter 1
-  const startIndex = lines.findIndex(l => l.trim().toUpperCase() === "CHAPTER 1");
-  const endIndex = lines.findIndex((l, idx) => idx > startIndex && l.trim().toUpperCase() === "CHAPTER 2");
-
-  if (startIndex === -1 || endIndex === -1) {
-    console.error("Could not find start or end of Chapter 1 in the source text.");
-    process.exit(1);
-  }
-
-  console.log(`Chapter 1 starts at line ${startIndex} and ends at line ${endIndex}`);
-  const chapterLines = lines.slice(startIndex, endIndex);
+  const chapterLines = endIndex === -1 ? lines.slice(startIndex) : lines.slice(startIndex, endIndex);
+  console.log(`Chapter ${chapterNum} starts at line ${startIndex + 1} and ends at line ${endIndex === -1 ? lines.length : endIndex + 1}`);
 
   // Parse lines into paragraphs grouped by section reference
   interface Paragraph {
@@ -125,11 +207,11 @@ async function main() {
     sectionRef: string;
   }
   const paragraphs: Paragraph[] = [];
-  let currentSectionRef = "Chapter 1 Introduction";
+  let currentSectionRef = `Chapter ${chapterNum} Introduction`;
   let currentParagraphLines: string[] = [];
 
   for (const line of chapterLines) {
-    const sectionHeader = getSectionHeader(line);
+    const sectionHeader = getSectionHeader(line, chapterNum);
     
     if (sectionHeader) {
       // Flush existing paragraph
@@ -247,17 +329,16 @@ async function main() {
 
   // Write to Database
   try {
-    // 1. Create or Find the Chapter
     const chapter = await prisma.chapter.upsert({
-      where: { number: 1 },
+      where: { number: chapterNum },
       update: {
-        title: "Reproduction in Organisms",
+        title: chapterTitle,
         subject: "Biology",
         grade: "Class 12"
       },
       create: {
-        number: 1,
-        title: "Reproduction in Organisms",
+        number: chapterNum,
+        title: chapterTitle,
         subject: "Biology",
         grade: "Class 12"
       }
@@ -265,29 +346,77 @@ async function main() {
 
     console.log(`Upserted Chapter: ${chapter.title} (ID: ${chapter.id})`);
 
-    // 2. Clear existing chunks for this chapter (ensures idempotency)
+    // Clear existing chunks for this chapter (ensures idempotency)
     const deleteCount = await prisma.chunk.deleteMany({
       where: { chapterId: chapter.id }
     });
     console.log(`Deleted ${deleteCount.count} existing chunks to ensure idempotency.`);
 
-    // 3. Insert chunks
-    let insertedCount = 0;
-    for (const chunk of chunks) {
-      await prisma.chunk.create({
-        data: {
-          chapterId: chapter.id,
-          sectionRef: chunk.sectionRef,
-          content: chunk.content,
-          tokenCount: chunk.tokenCount
-        }
-      });
-      insertedCount++;
-    }
+    // Insert chunks in a single bulk operation
+    const chunkData = chunks.map(chunk => ({
+      chapterId: chapter.id,
+      sectionRef: chunk.sectionRef,
+      content: chunk.content,
+      tokenCount: chunk.tokenCount
+    }));
 
-    console.log(`Successfully saved ${insertedCount} chunks to the database!`);
+    const result = await prisma.chunk.createMany({
+      data: chunkData
+    });
+
+    console.log(`Successfully saved ${result.count} chunks for Chapter ${chapterNum} to the database!`);
   } catch (error) {
-    console.error("Database operation failed:", error);
+    console.error(`Database operation failed for Chapter ${chapterNum}:`, error);
+    throw error;
+  }
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const chapterArg = args.find(arg => arg.startsWith("--chapter="))?.split("=")[1];
+  const allArg = args.includes("--all");
+
+  if (!allArg && !chapterArg) {
+    console.error("Usage: pnpm run chunk -- --chapter=<1-5> OR pnpm run chunk -- --all");
+    process.exit(1);
+  }
+
+  const filePath = path.resolve(__dirname, "../data/bio-ch1.txt");
+  if (!fs.existsSync(filePath)) {
+    console.error(`Source text file not found at: ${filePath}.`);
+    process.exit(1);
+  }
+
+  console.log(`Reading source text from: ${filePath}`);
+  const fullText = fs.readFileSync(filePath, "utf-8");
+  const lines = fullText.split(/\r?\n/);
+
+  const chaptersMap: Record<number, string> = {
+    1: "Reproduction in Organisms",
+    2: "Sexual Reproduction in Flowering Plants",
+    3: "Human Reproduction",
+    4: "Reproductive Health",
+    5: "Principles of Inheritance and Variation"
+  };
+
+  try {
+    if (allArg) {
+      for (const [numStr, title] of Object.entries(chaptersMap)) {
+        const num = parseInt(numStr, 10);
+        await processChapter(num, title, lines);
+      }
+    } else {
+      const chapterNums = chapterArg!.split(",").map(n => parseInt(n.trim(), 10));
+      for (const num of chapterNums) {
+        if (!chaptersMap[num]) {
+          console.error(`Invalid chapter number: ${num}. Only chapters 1-5 are supported.`);
+          process.exit(1);
+        }
+        await processChapter(num, chaptersMap[num], lines);
+      }
+    }
+  } catch (error) {
+    console.error("Error in execution:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
@@ -303,7 +432,6 @@ function cleanParagraphText(lines: string[]): string {
 
     // Check if line ends with a hyphen
     if (currentLine.endsWith("-")) {
-      // Remove hyphen and join directly with next line
       cleanedText += currentLine.slice(0, -1);
     } else {
       cleanedText += currentLine + " ";
