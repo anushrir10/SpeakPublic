@@ -37,3 +37,38 @@ export type HealthResponse = {
   status: string;
   timestamp: string;
 };
+
+// Week 2 additions
+
+export type ChapterResponse = {
+  id: string;
+  number: number;
+  title: string;
+  subject: string;
+  grade: string;
+};
+
+export type ChapterDetailResponse = ChapterResponse & {
+  chunks: ChunkResponse[];
+};
+
+export type ChunkResponse = {
+  id: string;
+  chapterId: string;
+  sectionRef: string;
+  content: string;
+  tokenCount: number;
+};
+
+export type RetrieveRequest = {
+  query: string;
+  topK?: number; // default 5
+};
+
+export type RetrieveResponse = {
+  chunkId: string;
+  content: string;
+  sectionRef: string;
+  chapterId: string;
+  similarity: number;
+}[];
