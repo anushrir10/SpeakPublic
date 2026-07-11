@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useLearning } from "../context/LearningContext";
 import { CaretLeft, CaretRight, BookOpen, FileText, ArrowLeft, Stack, FloppyDisk, Trash, X, Sparkle, MagnifyingGlass, CursorText, NotePencil, ArrowRight, ChatCircleDots } from "@phosphor-icons/react";
-import { retrieveContent, fetchChunks } from "../services/api";
+import { retrieveContent } from "../services/api";
 import { useChapters } from "../hooks/useChapters";
+import { useChunks } from "../hooks/useChunks";
 import CentralStudyCard from "./CentralStudyCard";
 import ThemeToggle from "./ThemeToggle";
 import ChapterNav from "./ChapterNav";
@@ -20,13 +21,9 @@ export default function Reader() {
     setActiveTab
   } = useLearning();
 
-  // Floating selection popover position (viewport coords)
-  const [selPos, setSelPos] = useState(null);
-
-  // Chapter navigation (Week 2) — live from /api/chapters, or local fallback
+  // Chapter navigation — live from /api/chapters, or local fallback
   const { chapters, loading: chaptersLoading, isFallback: chaptersFallback } = useChapters(activeBook);
   const [selectedChapterId, setSelectedChapterId] = useState(null); // set when a live chapter is chosen
-  const [apiChunks, setApiChunks] = useState(null); // Chunk[] when a live chapter is loaded
 
   // Contextual "Ask" side panel — the shell Week 3 AI Q&A streams into
   const [askOpen, setAskOpen] = useState(false);
@@ -75,36 +72,28 @@ export default function Reader() {
     }
   }, [userHighlights, userNotes, activeBook]);
 
-  // Dismiss the floating selection action on scroll / outside interaction
-  useEffect(() => {
-    if (!selPos) return;
-    const clear = () => setSelPos(null);
-    window.addEventListener("scroll", clear, true);
-    window.addEventListener("resize", clear);
-    const onDown = (e) => {
-      if (!e.target.closest?.("#selection-flashcard")) {
-        const sel = window.getSelection();
-        if (!sel || sel.toString().trim().length < 3) setSelPos(null);
-      }
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => {
-      window.removeEventListener("scroll", clear, true);
-      window.removeEventListener("resize", clear);
-      document.removeEventListener("mousedown", onDown);
-    };
-  }, [selPos]);
+  // Live mode = the API returned real chapters (not the local fallback).
+  const liveMode = !chaptersFallback && chapters.length > 0;
+
+  // In live mode, scope the chapter list to the grade and subject the student opened.
+  const gradeMatched = activeBook ? chapters.filter((c) => c.grade === activeBook.grade && c.subject === activeBook.subject) : [];
+  const navChapters = liveMode ? (gradeMatched.length ? gradeMatched : chapters) : chapters;
+
+  // Derived active chapter (no effect): fallback chapters map 1:1 to pages,
+  // live chapters follow the user's selection (defaulting to the first).
+  const activeChapterId = chaptersFallback
+    ? (navChapters.find((c) => c.__pageNumber === activePageNum)?.id ?? navChapters[0]?.id ?? null)
+    : (selectedChapterId ?? navChapters[0]?.id ?? null);
+
+  const activeChapter = navChapters.find((c) => c.id === activeChapterId) || null;
+
+  // Fetch the active chapter's chunks from /api/chunks (live mode only).
+  const { chunks: liveChunks, loading: chunksLoading } = useChunks(liveMode ? activeChapterId : null);
 
   if (!activeBook) return null;
 
   const currentPage = activeBook.pages.find(p => p.pageNumber === activePageNum) || activeBook.pages[0];
   const conceptMap = currentPage?.concepts || {};
-
-  // Derived active chapter (no effect): fallback chapters map 1:1 to pages,
-  // live chapters follow the user's explicit selection.
-  const activeChapterId = chaptersFallback
-    ? (chapters.find((c) => c.__pageNumber === activePageNum)?.id ?? chapters[0]?.id ?? null)
-    : (selectedChapterId ?? chapters[0]?.id ?? null);
 
   // Monitor text selections in the summary pane
   const handleTextSelection = () => {
@@ -123,57 +112,37 @@ export default function Reader() {
         rect.top >= containerRect.top &&
         rect.bottom <= containerRect.bottom
       ) {
+        // Mirror the exact selected passage into the Study Assistant…
         setSelectionText(text);
         setNoteInput(userNotes[text] || "");
         setCustomDefinition(`Selected term "${text}" in the context of ${activeBook.title}. Turn it into a flashcard, quiz and study note.`);
-        // Show a floating action right at the selection
-        setSelPos({
-          x: rect.left + rect.width / 2,
-          y: rect.top
-        });
-        return;
+        // …and open it automatically.
+        setSidebarOpen(true);
       }
     }
-    // No valid selection -> hide the floating action
-    setSelPos(null);
   };
 
-  // Chapter selection: local sections jump to a page; live chapters load chunks
-  const handleSelectChapter = async (chapter) => {
+  // Chapter selection: local sections jump to a page; live chapters swap the
+  // active chapter id (useChunks then fetches /api/chunks for it).
+  const handleSelectChapter = (chapter) => {
     if (chapter.__local) {
-      setApiChunks(null);
       if (chapter.__pageNumber) setActivePageNum(chapter.__pageNumber);
     } else {
-      // Live chapter from /api/chapters → fetch its chunks (Week 3 renders full content)
       setSelectedChapterId(chapter.id);
-      setApiChunks(null);
-      const chunks = await fetchChunks(chapter.id);
-      setApiChunks(chunks || []);
     }
   };
 
   // Open the contextual Ask panel for the current selection
-  const handleAsk = () => {
-    if (!selectionText) return;
-    setAskSelection(selectionText);
+  const handleAsk = (text = selectionText) => {
+    if (!text) return;
+    // Fire the retrieve call to the backend (non-blocking; Week 3 renders results)
+    retrieveContent(text).then((result) => {
+      if (result && !result.message?.includes("coming soon")) {
+        console.log("[FixIt] Retrieved related content:", result);
+      }
+    });
+    setAskSelection(text);
     setAskOpen(true);
-    setSelPos(null);
-    window.getSelection()?.removeAllRanges();
-  };
-
-  // Quick action: selected text -> flashcard/study card
-  const handleQuickStudy = async () => {
-    // Fire retrieve call to backend (non-blocking, result logged)
-    if (selectionText) {
-      retrieveContent(selectionText).then((result) => {
-        if (result && !result.message?.includes("coming soon")) {
-          console.log("[FixIt] Retrieved related content:", result);
-        }
-      });
-    }
-    applyHighlightAndStudy();
-    setActiveTab("flashcard");
-    setSelPos(null);
   };
 
   // Add highlight and generate a dynamic flashcard/MCQ card on selection
@@ -279,7 +248,7 @@ export default function Reader() {
               key={`${pIdx}-${keyOrValue}`}
               id={`highlight-${keyOrValue.toLowerCase()}`}
               onClick={() => selectConcept(keyOrValue.toLowerCase())}
-              className={`highlight-trigger font-bold text-stone-800 ${isActive ? "active" : ""}`}
+              className={`font-semibold cursor-pointer transition-colors ${isActive ? "text-clay-dark" : "text-stone-800 hover:text-clay-dark"}`}
             >
               {displayName}
             </button>
@@ -317,15 +286,7 @@ export default function Reader() {
                 };
                 selectConcept(customConcept);
               }}
-              className="highlight-trigger font-bold text-stone-800"
-              style={{
-                backgroundColor: isActive ? 'rgba(253, 224, 71, 0.75)' : 'rgba(253, 224, 71, 0.4)',
-                borderBottomStyle: 'solid',
-                borderBottomWidth: '2px',
-                borderBottomColor: '#ca8a04',
-                padding: '1px 2px',
-                borderRadius: '2px'
-              }}
+              className={`font-semibold cursor-pointer transition-colors ${isActive ? "text-clay-dark" : "text-stone-800 hover:text-clay-dark"}`}
             >
               {keyOrValue}
             </button>
@@ -449,14 +410,23 @@ export default function Reader() {
                   </button>
                 </div>
 
-                {/* Highlight and Study Action */}
-                <button
-                  onClick={() => applyHighlightAndStudy()}
-                  className="w-full py-3 tactile-btn-primary font-body text-xs tracking-wide font-semibold flex items-center justify-center gap-1.5"
-                >
-                  <Sparkle className="w-4 h-4" weight="fill" />
-                  Highlight &amp; study card
-                </button>
+                {/* Ask + Study actions */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleAsk(selectionText)}
+                    className="w-full py-3 tactile-btn-primary font-body text-xs tracking-wide font-semibold flex items-center justify-center gap-1.5"
+                  >
+                    <ChatCircleDots className="w-4 h-4" weight="fill" />
+                    Ask FixIt about this
+                  </button>
+                  <button
+                    onClick={() => applyHighlightAndStudy()}
+                    className="w-full py-2.5 tactile-btn font-body text-xs tracking-wide font-medium flex items-center justify-center gap-1.5"
+                  >
+                    <Sparkle className="w-4 h-4 text-clay" weight="fill" />
+                    Highlight &amp; study card
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-[#E6E2D6] bg-[#FBFAF7] px-5 py-8 text-center">
@@ -559,7 +529,7 @@ export default function Reader() {
             Bookshelf
           </button>
           <ChapterNav
-            chapters={chapters}
+            chapters={navChapters}
             activeChapterId={activeChapterId}
             onSelect={handleSelectChapter}
             loading={chaptersLoading}
@@ -569,10 +539,12 @@ export default function Reader() {
 
         <div className="text-center hidden lg:block">
           <span className="text-[10px] uppercase font-semibold text-clay font-body block tracking-[0.15em] leading-none mb-0.5">
-            {activeBook.board} • {activeBook.grade}
+            {liveMode && activeChapter
+              ? `${activeChapter.subject} • ${activeChapter.grade}`
+              : `${activeBook.board} • ${activeBook.grade}`}
           </span>
           <h2 className="text-base md:text-lg font-heading text-stone-800 leading-tight tracking-tight font-semibold">
-            {activeBook.title}
+            {liveMode && activeChapter ? activeChapter.title : activeBook.title}
           </h2>
         </div>
 
@@ -664,17 +636,34 @@ export default function Reader() {
         >
           <div className="flex-1 flex flex-col justify-start">
             <div className="flex justify-between items-center text-[10px] uppercase font-semibold tracking-wider text-clay border-b border-[#E6E2D6] pb-3 mb-6">
-              <span>Chapter summary</span>
+              <span className="flex items-center gap-1.5">
+                {liveMode ? "Chapter content" : "Chapter summary"}
+                <span
+                  className={`normal-case tracking-normal text-[9px] font-medium px-1.5 py-0.5 rounded-full ${
+                    liveMode ? "bg-clay-tint text-clay-dark" : "bg-amber-50 text-amber-600 border border-amber-200"
+                  }`}
+                  title={liveMode ? "Streaming from /api/chunks" : "Local content — API not connected"}
+                >
+                  {liveMode ? "live" : "local"}
+                </span>
+              </span>
               <span className="flex items-center gap-1 text-stone-400 normal-case tracking-normal font-normal">
                 <Stack className="w-3.5 h-3.5" />
                 Select text to study it
               </span>
             </div>
 
-            {/* Render live chapter chunks when available, else the local summary */}
+            {/* Live chapter chunks from /api/chunks; local interactive summary otherwise */}
             <div className="prose max-w-none">
-              {apiChunks && apiChunks.length > 0
-                ? apiChunks.map((ch) => (
+              {liveMode ? (
+                chunksLoading && !liveChunks ? (
+                  <div className="space-y-3 animate-pulse">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="h-3.5 rounded-full bg-stone-200" style={{ width: `${92 - (i % 3) * 12}%` }} />
+                    ))}
+                  </div>
+                ) : liveChunks && liveChunks.length > 0 ? (
+                  liveChunks.map((ch) => (
                     <p
                       key={ch.id}
                       data-section={ch.sectionRef}
@@ -683,12 +672,21 @@ export default function Reader() {
                       {ch.content}
                     </p>
                   ))
-                : parseInteractiveText(currentPage.interactiveSummary)}
+                ) : (
+                  <p className="text-sm text-stone-400 italic">
+                    No content chunks for this chapter yet.
+                  </p>
+                )
+              ) : (
+                parseInteractiveText(currentPage.interactiveSummary)
+              )}
             </div>
           </div>
 
           <div className="text-center text-[10px] font-body text-stone-400 pt-4 mt-8 border-t border-dashed border-[#E6E2D6] italic">
-            Keywords trigger definitions, interactive flashcards, and checks on your right panel.
+            {liveMode
+              ? `${liveChunks?.length ?? 0} section${(liveChunks?.length ?? 0) === 1 ? "" : "s"} · select any passage to study or ask about it.`
+              : "Keywords trigger definitions, interactive flashcards, and checks on your right panel."}
           </div>
         </div>
 
@@ -730,38 +728,6 @@ export default function Reader() {
           <CaretRight className="w-4 h-4" />
         </button>
       </div>
-
-      {/* Floating selection actions */}
-      {selPos && selectionText && (
-        <div
-          className="fixed z-[60] animate-pop-in"
-          style={{ left: selPos.x, top: selPos.y - 10, transform: "translate(-50%, -100%)" }}
-        >
-          <div
-            onMouseDown={(e) => e.preventDefault()}
-            className="flex items-stretch rounded-full bg-clay text-white text-xs font-semibold font-body shadow-[0_10px_24px_-8px_rgba(217,119,87,0.8)] overflow-hidden"
-          >
-            <button
-              id="selection-ask"
-              onClick={handleAsk}
-              className="flex items-center gap-1.5 pl-3.5 pr-3 py-2 hover:bg-clay-dark transition cursor-pointer"
-            >
-              <ChatCircleDots className="w-3.5 h-3.5" weight="fill" />
-              Ask FixIt
-            </button>
-            <span className="w-px my-1.5 bg-white/30" />
-            <button
-              id="selection-flashcard"
-              onClick={handleQuickStudy}
-              className="flex items-center gap-1.5 pl-3 pr-3.5 py-2 hover:bg-clay-dark transition cursor-pointer"
-            >
-              <Sparkle className="w-3.5 h-3.5" weight="fill" />
-              Flashcard
-            </button>
-          </div>
-          <div className="w-2.5 h-2.5 bg-clay rotate-45 mx-auto -mt-1"></div>
-        </div>
-      )}
 
       {/* Contextual side panel shell (Week 3 AI Q&A container) */}
       <ContextualPanel
