@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLearning } from "../context/LearningContext";
-import { X, Book, Question, ArrowsCounterClockwise, CheckCircle, FileText } from "@phosphor-icons/react";
+import { X, Book, Question, ArrowsCounterClockwise, CheckCircle } from "@phosphor-icons/react";
 import confetti from "canvas-confetti";
 import { reviewFlashcard } from "../services/api";
 
@@ -13,8 +13,6 @@ export default function CentralStudyCard() {
     sidePanelOpen,
     activeTab,
     completedMCQs,
-    retrievedChunks,
-    activeConceptDetail,
     setSidePanelOpen,
     setActiveTab,
     markMCQComplete
@@ -24,7 +22,19 @@ export default function CentralStudyCard() {
   const [submitted, setSubmitted] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const concept = activeConceptDetail;
+  // Retrieve the concept data (case-insensitive key match)
+  const pageData = activeBook?.pages?.find(p => p.pageNumber === activePageNum);
+  const lookupConcept = (key) => {
+    if (!key || !pageData?.concepts) return null;
+    if (pageData.concepts[key]) return pageData.concepts[key];
+    const hit = Object.entries(pageData.concepts).find(
+      ([k]) => k.toLowerCase() === key.toLowerCase()
+    );
+    return hit ? hit[1] : null;
+  };
+  const concept = activeConceptKey === "custom"
+    ? activeCustomConcept
+    : lookupConcept(activeConceptKey);
 
   if (!sidePanelOpen || !concept) return null;
 
@@ -102,8 +112,7 @@ export default function CentralStudyCard() {
             {[
               { id: "definition", label: "Definition", icon: Book },
               { id: "flashcard", label: "Flashcard", icon: ArrowsCounterClockwise },
-              { id: "mcq", label: "Concept Quiz", icon: Question },
-              { id: "references", label: "Textbook References", icon: FileText }
+              { id: "mcq", label: "Concept Quiz", icon: Question }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -311,49 +320,6 @@ export default function CentralStudyCard() {
                       Submit Answer
                     </button>
                   )}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: REFERENCES (RAG) */}
-            {activeTab === "references" && (
-              <div className="flex-1 flex flex-col justify-between text-stone-800 font-body animate-tab-in">
-                <div className="space-y-4 flex-grow max-h-[340px] overflow-y-auto pr-2 select-text">
-                  <div>
-                    <span className="text-[11px] uppercase font-semibold text-clay font-body tracking-wider block mb-1">
-                      AI RAG Retrieval
-                    </span>
-                    <h3 className="text-xl font-heading text-[#1F1E1D] tracking-tight border-b border-[#E6E2D6] pb-2 font-semibold text-left">
-                      Related Textbook Passages for "{concept.term}"
-                    </h3>
-                  </div>
-                  {retrievedChunks && retrievedChunks.length > 0 ? (
-                    <div className="space-y-4 text-left">
-                      {retrievedChunks.map((chunk, idx) => (
-                        <div key={idx} className="p-3.5 bg-[#FBFAF7] border border-[#E6E2D6] rounded-xl space-y-1.5 shadow-sm">
-                          <div className="flex justify-between items-center text-[10px] uppercase font-bold text-clay">
-                            <span>Source: {chunk.sectionRef || "Textbook"}</span>
-                            <span>Match Score: {((chunk.similarity || 0) * 100).toFixed(0)}%</span>
-                          </div>
-                          <p className="text-xs md:text-sm leading-relaxed text-stone-700 italic select-text">
-                            "{chunk.content}"
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 text-stone-400 italic text-sm">
-                      Loading related textbook references via vector similarity...
-                    </div>
-                  )}
-                </div>
-                <div className="pt-4 border-t border-dashed border-[#E6E2D6] mt-4">
-                  <button
-                    onClick={() => handleTabChange("definition")}
-                    className="w-full py-2.5 font-heading tracking-wide uppercase text-xs tactile-btn"
-                  >
-                    Back to Definition
-                  </button>
                 </div>
               </div>
             )}

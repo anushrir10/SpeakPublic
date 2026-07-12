@@ -102,15 +102,4 @@ export const reviewFlashcard = async (cardId, rating) => {
   }
 };
 
-// POST /api/generate-card — generate study card definition, flashcard & mcq from context chunks
-export const generateStudyCard = async (query, chunks) => {
-  try {
-    const { data } = await api.post("/api/generate-card", { query, chunks });
-    return data;
-  } catch (err) {
-    console.warn("[api] Generate study card failed:", err.message);
-    return null;
-  }
-};
-
 export default api;

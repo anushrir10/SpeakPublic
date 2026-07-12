@@ -158,12 +158,12 @@ export default function Reader() {
       term: targetText,
       definition: userNotes[targetText] 
         ? `"${targetText}" - Note: ${userNotes[targetText]}`
-        : `Searching textbook passages for the definition...`,
+        : `You highlighted the phrase "${targetText}". In the context of this chapter of ${activeBook.title}, this represents a key detail selected for study.`,
       flashcard: {
         front: `What is the significance of the highlighted phrase: "${targetText}"?`,
         back: userNotes[targetText]
           ? `Concept: "${targetText}". Study Note: ${userNotes[targetText]}`
-          : `Searching textbook passages for the answer...`
+          : `This is a student-highlighted concept. Re-examine the text surrounding "${targetText}" in the summary to understand its complete context.`
       },
       mcq: {
         question: `Based on your reading, which of the following is associated with the term: "${targetText}"?`,
@@ -265,12 +265,12 @@ export default function Reader() {
                   term: keyOrValue,
                   definition: userNotes[keyOrValue]
                     ? `"${keyOrValue}" - Study Note: ${userNotes[keyOrValue]}`
-                    : `Searching textbook passages for the definition...`,
+                    : `You highlighted the phrase "${keyOrValue}". In the context of this chapter of ${activeBook.title}, this represents a specific detail selected for review and active study.`,
                   flashcard: {
                     front: `What is the significance of the highlighted phrase: "${keyOrValue}"?`,
                     back: userNotes[keyOrValue]
                       ? `Concept: "${keyOrValue}". Study Note: ${userNotes[keyOrValue]}`
-                      : `Searching textbook passages for the answer...`
+                      : `This is a student-highlighted concept. Re-examine the text surrounding "${keyOrValue}" in the summary to understand its complete context.`
                   },
                   mcq: {
                     question: `Based on your reading, which of the following is associated with the term: "${keyOrValue}"?`,
