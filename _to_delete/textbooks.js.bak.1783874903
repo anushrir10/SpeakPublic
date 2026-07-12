@@ -794,6 +794,114 @@ export const textbooks = [
           }
         }
       },
+      // ──────────────────────────────────────────────
+      // CHAPTER 8: CELL — THE UNIT OF LIFE (original page)
+      // ──────────────────────────────────────────────
+      {
+        pageNumber: 10,
+        title: "Cell: The Unit of Life",
+        imageUrl: "/biology_class11_page.png",
+        originalText: `
+          <h3>CHAPTER 8: CELL - THE UNIT OF LIFE</h3>
+          <p class="mb-4">When you look around, you see both living and non-living things. You must have wondered and asked yourself - 'what is it that makes an organism living, or what is it that an inanimate thing does not have which a living thing has?' The answer to this is the presence of the basic unit of life - the cell in all living organisms.</p>
+          <h4 class="font-bold text-lg border-b border-[#ebdcb9] pb-1 mt-4 mb-2">8.1 What is a Cell?</h4>
+          <p class="mb-4">Organisms are either unicellular or multicellular. Anton von Leeuwenhoek first saw and described a live cell. Cells are divided into two main categories based on structural complexity: <strong>prokaryotic</strong> cells, which lack a nuclear membrane, and <strong>eukaryotic</strong> cells, which contain a well-defined membrane-bound nucleus.</p>
+          <p class="mb-4">Inside cells, organelle structures carry out critical metabolic jobs. The <strong>mitochondria</strong> are double-membrane bound powerhouses responsible for generating cellular ATP. Scattered in the cytoplasm, tiny non-membrane bound particles called <strong>ribosomes</strong> are the sites of protein synthesis.</p>
+        `,
+        interactiveSummary: `
+          <p class="lead mb-4 font-medium text-lg">Cell biology overview: Basic structures and classification.</p>
+          <p class="mb-4 leading-relaxed">
+            The cell is the basic structural and functional unit of all living organisms. Cells are classified by complexity. A {prokaryotic} cell is characterized by the absence of a true, membrane-bound nucleus and membrane-bound organelles.
+          </p>
+          <p class="mb-4 leading-relaxed">
+            In contrast, a complex {eukaryotic} cell contains a clear, membrane-bound nucleus housing its genetic material, alongside specialized compartments.
+          </p>
+          <p class="mb-4 leading-relaxed">
+            One of the most important organelles in eukaryotic cells is the {mitochondria}. Often referred to as the 'powerhouse of the cell', it produces adenosine triphosphate (ATP) through aerobic cellular respiration.
+          </p>
+          <p class="mb-4 leading-relaxed">
+            Another critical cell component is the {ribosomes}. Found in both cell types, these granular structures lack membranes and serve as the cellular machinery for translating genetic codes into proteins.
+          </p>
+        `,
+        concepts: {
+          "prokaryotic": {
+            term: "Prokaryotic Cell",
+            definition: "A prokaryotic cell is a simple, single-celled organism that lacks a distinct membrane-bound nucleus and membrane-bound organelles. Bacterial cells are typical prokaryotes.",
+            flashcard: {
+              front: "What is the key defining feature of prokaryotic cells?",
+              back: "They lack a membrane-bound nucleus. Their genetic material (DNA) lies exposed in a region called the nucleoid."
+            },
+            mcq: {
+              question: "Which of the following organisms is prokaryotic?",
+              options: [
+                "Amoeba",
+                "Onion cell",
+                "Escherichia coli (Bacterium)",
+                "Yeast"
+              ],
+              correctIndex: 2,
+              explanation: "Bacteria (like E. coli) are prokaryotes, while Amoeba, plants, and Yeast are eukaryotic."
+            }
+          },
+          "eukaryotic": {
+            term: "Eukaryotic Cell",
+            definition: "A eukaryotic cell is a complex cell characterized by having a well-defined membrane-bound nucleus that encloses its genetic material, along with specialized membrane-bound organelles like Golgi bodies and mitochondria.",
+            flashcard: {
+              front: "Name three structures found in eukaryotic cells but absent in prokaryotes.",
+              back: "A nuclear membrane, mitochondria, Golgi apparatus, and endoplasmic reticulum."
+            },
+            mcq: {
+              question: "Where is genetic material stored in a eukaryotic cell?",
+              options: [
+                "Free-floating in the cytoplasm",
+                "Inside a membrane-bound nucleus",
+                "Within ribosomes",
+                "Inside vacuole walls"
+              ],
+              correctIndex: 1,
+              explanation: "Eukaryotic cells keep their DNA inside a double-membrane bound compartment called the nucleus."
+            }
+          },
+          "mitochondria": {
+            term: "Mitochondria",
+            definition: "Mitochondria are double-membrane bound organelles found in most eukaryotic organisms. They generate most of the cell's supply of adenosine triphosphate (ATP), used as a source of chemical energy.",
+            flashcard: {
+              front: "Why are mitochondria referred to as the powerhouses of the cell?",
+              back: "They perform aerobic cellular respiration, which converts nutrients into ATP, the cell's energy currency."
+            },
+            mcq: {
+              question: "Which chemical energy unit is generated inside the mitochondria?",
+              options: [
+                "Glucose",
+                "ADP",
+                "ATP",
+                "DNA"
+              ],
+              correctIndex: 2,
+              explanation: "Mitochondria synthesize Adenosine Triphosphate (ATP), which acts as the energetic fuel for cellular work."
+            }
+          },
+          "ribosomes": {
+            term: "Ribosomes",
+            definition: "Ribosomes are minute, non-membrane bound organelle structures composed of RNA and proteins. They are the sites where genetic translation occurs to synthesize proteins.",
+            flashcard: {
+              front: "What is the primary function of ribosomes?",
+              back: "Protein synthesis. They read mRNA sequences and assemble amino acids into polypeptide chains."
+            },
+            mcq: {
+              question: "Ribosomes are responsible for which cellular function?",
+              options: [
+                "Photosynthesis",
+                "Lipid digestion",
+                "Protein synthesis",
+                "DNA replication"
+              ],
+              correctIndex: 2,
+              explanation: "Ribosomes read mRNA codes and translate them, acting as the sites for protein synthesis."
+            }
+          }
+        }
+      }
     ]
   },
   {

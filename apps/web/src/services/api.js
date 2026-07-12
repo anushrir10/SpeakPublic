@@ -102,4 +102,56 @@ export const reviewFlashcard = async (cardId, rating) => {
   }
 };
 
+// ─── DB-Backed Flashcards ────────────────────────────────
+// GET /api/flashcards?chapterId=x — all flashcards for a chapter.
+// Returns Flashcard[] ({ id, chunkId, question, answer, difficulty, type, options }) or [].
+export const fetchFlashcards = async (chapterId) => {
+  if (!chapterId) return [];
+  try {
+    const { data } = await api.get("/api/flashcards", { params: { chapterId } });
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn("[api] fetchFlashcards failed:", err.message);
+    return [];
+  }
+};
+
+// GET /api/flashcards/:id — single flashcard by id.
+export const fetchFlashcard = async (id) => {
+  if (!id) return null;
+  try {
+    const { data } = await api.get(`/api/flashcards/${id}`);
+    return data ?? null;
+  } catch (err) {
+    console.warn("[api] fetchFlashcard failed:", err.message);
+    return null;
+  }
+};
+
+// ─── Simplified Content (Difficulty Tiers) ───────────────
+// GET /api/chunks/:id/simplified?tier=eli5|standard|advanced
+// Returns { id, chunkId, tier, text } or null.
+export const fetchSimplifiedContent = async (chunkId, tier = "standard") => {
+  if (!chunkId) return null;
+  try {
+    const { data } = await api.get(`/api/chunks/${chunkId}/simplified`, {
+      params: { tier },
+    });
+    return data ?? null;
+  } catch (err) {
+    console.warn("[api] fetchSimplifiedContent failed:", err.message);
+    return null;
+  }
+};
+
+// ─── Analytics ───────────────────────────────────────────
+// POST /api/analytics — fire-and-forget event logging.
+export const logAnalyticsEvent = async (eventType, chunkId = null, metadata = {}) => {
+  try {
+    await api.post("/api/analytics", { eventType, chunkId, metadata });
+  } catch {
+    // Non-critical — swallow silently
+  }
+};
+
 export default api;
