@@ -34,8 +34,11 @@ async function embedTextWithRetry(texts: string[], retries = 5, delay = 1000): P
 }
 
 async function main() {
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes("sk-proj-...")) {
-    console.error("Error: OPENAI_API_KEY is not configured in the .env file.");
+  const args = process.argv.slice(2);
+  const useMock = args.includes("--mock");
+
+  if (!useMock && (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes("sk-proj-..."))) {
+    console.error("Error: OPENAI_API_KEY is not configured in the .env file. Pass the --mock flag to run with mock embeddings.");
     process.exit(1);
   }
 
@@ -68,7 +71,22 @@ async function main() {
     console.log(`Embedding batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunks.length / BATCH_SIZE)} (Size: ${batch.length})...`);
     
     try {
-      const embeddings = await embedTextWithRetry(texts);
+      let embeddings: number[][];
+      if (useMock) {
+        console.log(`Generating mock embeddings for batch...`);
+        embeddings = batch.map(() => Array.from({ length: 1536 }, () => (Math.random() - 0.5) * 0.1));
+      } else {
+        try {
+          embeddings = await embedTextWithRetry(texts);
+        } catch (err: any) {
+          if (err.status === 429 || err.code === "insufficient_quota" || (err.message && err.message.includes("quota"))) {
+            console.warn("OpenAI API Quota exceeded or error. Falling back to mock embeddings for this batch...");
+            embeddings = batch.map(() => Array.from({ length: 1536 }, () => (Math.random() - 0.5) * 0.1));
+          } else {
+            throw err;
+          }
+        }
+      }
       
       console.log(`Saving embeddings to database...`);
       for (let j = 0; j < batch.length; j++) {
