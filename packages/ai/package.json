@@ -8,11 +8,16 @@
     "chunk": "tsx src/scripts/chunk-chapter.ts",
     "embed": "tsx src/scripts/embed-chunks.ts",
     "test-retrieval": "tsx src/scripts/test-retrieval.ts",
-    "evaluate": "tsx src/scripts/evaluate-retrieval.ts",
     "type-check": "node ../../node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/tsc.js --noEmit"
   },
   "devDependencies": {
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@fixit/db": "workspace:*",
+    "dotenv": "^16.3.1",
+    "gpt-3-encoder": "^1.1.4",
+    "openai": "^6.46.0"
   }
 }
