@@ -3,6 +3,8 @@ import { OpenAI } from "openai";
 import path from "path";
 import dotenv from "dotenv";
 
+import { generateMockEmbedding } from "./embed-chunks";
+
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
@@ -21,24 +23,31 @@ async function main() {
     process.exit(1);
   }
 
-  if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes("sk-proj-...")) {
-    console.error("Error: OPENAI_API_KEY is not configured in the .env file.");
-    process.exit(1);
-  }
-
   console.log(`Query: "${queryArg}"`);
-  console.log("Generating query embedding using text-embedding-3-small...");
   
   let queryEmbedding: number[] = [];
-  try {
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: queryArg,
-    });
-    queryEmbedding = response.data[0].embedding;
-  } catch (error) {
-    console.error("Failed to generate embedding for query:", error);
-    process.exit(1);
+  const hasKey = process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes("sk-proj-...");
+  
+  if (!hasKey) {
+    console.warn("WARNING: Using local mock embedding fallback.");
+    queryEmbedding = generateMockEmbedding(queryArg);
+  } else {
+    console.log("Generating query embedding using text-embedding-3-small...");
+    try {
+      const response = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: queryArg,
+      });
+      queryEmbedding = response.data[0].embedding;
+    } catch (error: any) {
+      if (error.status === 429 || error.status === 401) {
+        console.warn(`[WARNING] OpenAI API Quota/Auth Error. Falling back to local mock embedding.`);
+        queryEmbedding = generateMockEmbedding(queryArg);
+      } else {
+        console.error("Failed to generate embedding for query:", error);
+        process.exit(1);
+      }
+    }
   }
 
   console.log("Running similarity search in PostgreSQL...");
