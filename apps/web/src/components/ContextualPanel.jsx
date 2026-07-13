@@ -94,7 +94,7 @@ export default function ContextualPanel({
         role="dialog"
         aria-label="Ask FixIt"
         style={{ willChange: "transform" }}
-        className={`fixed inset-y-0 right-0 w-[420px] max-w-[90vw] bg-white border-l border-[#E6E2D6] shadow-2xl z-50 flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`fixed inset-y-0 right-0 w-[420px] max-w-[90vw] glass-panel rounded-none shadow-2xl z-50 flex flex-col transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
