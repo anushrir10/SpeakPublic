@@ -140,33 +140,17 @@ export default function Reader() {
     ? chapterPages.findIndex((p) => p.pageNumber === currentPage.pageNumber)
     : -1;
 
-  // Reduce markup to a set of comparable words (length >= 5).
-  const wordsOf = (html) =>
-    new Set(
-      ((html || "").replace(/<[^>]+>/g, " ").replace(/[{}]/g, " ").toLowerCase().match(/[a-z]{5,}/g)) || []
-    );
-
-  // Assign each chapter chunk to the local page whose summary it overlaps most,
-  // so the reading pane only shows content that MATCHES the scanned page. A chunk
-  // is shown on the current page only when that page is its best match (>= 25%
-  // word overlap); otherwise the page falls back to its own local summary, so
-  // mismatched content never appears next to a page.
-  const pageWordSets = chapterPages.map((p) => wordsOf(p.interactiveSummary));
-  const chunkOnCurrentPage = (chunk) => {
-    if (pageIdxInChapter < 0 || pageWordSets.length === 0) return false;
-    const cw = wordsOf(chunk.content);
-    if (cw.size === 0) return false;
-    let bestIdx = -1;
-    let bestScore = 0;
-    pageWordSets.forEach((ws, i) => {
-      let shared = 0;
-      cw.forEach((w) => { if (ws.has(w)) shared += 1; });
-      const score = shared / cw.size;
-      if (score > bestScore) { bestScore = score; bestIdx = i; }
-    });
-    return bestIdx === pageIdxInChapter && bestScore >= 0.25;
+  // Split a chapter's chunks across its pages so each page shows its own slice
+  // (one chunk per page when counts line up, an even slice otherwise).
+  const sliceChunksForPage = (chunks, idx, pageCount) => {
+    if (!chunks || chunks.length === 0) return [];
+    if (idx < 0 || pageCount <= 1) return chunks;
+    if (chunks.length <= pageCount) return chunks[idx] ? [chunks[idx]] : [];
+    const start = Math.floor((idx * chunks.length) / pageCount);
+    const end = Math.floor(((idx + 1) * chunks.length) / pageCount);
+    return chunks.slice(start, Math.max(end, start + 1));
   };
-  const pageChunks = livePage ? (liveChunks || []).filter(chunkOnCurrentPage) : [];
+  const pageChunks = livePage ? sliceChunksForPage(liveChunks, pageIdxInChapter, chapterPages.length) : [];
 
   // Simplified content follows the first chunk shown on this page.
   const firstChunkId = pageChunks.length > 0 ? pageChunks[0].id : null;
