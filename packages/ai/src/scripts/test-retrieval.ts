@@ -36,9 +36,14 @@ async function main() {
       input: queryArg,
     });
     queryEmbedding = response.data[0].embedding;
-  } catch (error) {
-    console.error("Failed to generate embedding for query:", error);
-    process.exit(1);
+  } catch (error: any) {
+    if (error.status === 429 || error.code === "insufficient_quota" || (error.message && error.message.includes("quota"))) {
+      console.warn("OpenAI API Quota exceeded. Generating a mock query embedding for retrieval test...");
+      queryEmbedding = Array.from({ length: 1536 }, () => (Math.random() - 0.5) * 0.1);
+    } else {
+      console.error("Failed to generate embedding for query:", error);
+      process.exit(1);
+    }
   }
 
   console.log("Running similarity search in PostgreSQL...");

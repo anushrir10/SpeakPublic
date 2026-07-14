@@ -15,33 +15,58 @@ function getSectionHeader(line: string): string | null {
   
   // Regex patterns for section numbers
   if (/^\s*(1\.1)(\s|$)/i.test(trimmed)) {
-    return "Section 1.1: Asexual Reproduction";
+    return "Section 1.1: What is 'Living'?";
   }
   if (/^\s*(1\.2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2: Sexual Reproduction";
+    return "Section 1.2: Diversity in the Living World";
   }
-  if (/^\s*(1\.2\.1)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.1: Pre-fertilisation Events";
+  if (/^\s*(1\.3)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3: Taxonomic Categories";
   }
-  if (/^\s*(1\.2\.1\.1)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.1.1: Gametogenesis";
+  if (/^\s*(1\.3\.1)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3.1: Species";
   }
-  if (/^\s*(1\.2\.1\.2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.1.2: Gamete Transfer";
+  if (/^\s*(1\.3\.2)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3.2: Genus";
   }
-  if (/^\s*(1\.2\.2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.2: Fertilisation";
+  if (/^\s*(1\.3\.3)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3.3: Family";
   }
-  if (/^\s*(1\.2\.3)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.3: Post-fertilisation Events";
+  if (/^\s*(1\.3\.4)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3.4: Order";
   }
-  // Handles OCR errors like 1.2.8. J or 1.2.8. 1
-  if (/^\s*(1\.2\.[83]\s*\.\s*[1J])(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.3.1: The Zygote";
+  if (/^\s*(1\.3\.5)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3.5: Class";
   }
-  // Handles OCR errors like 1.2.8.2
-  if (/^\s*(1\.2\.[83]\s*\.\s*2)(\s|$)/i.test(trimmed)) {
-    return "Section 1.2.3.2: Embryogenesis";
+  if (/^\s*(1\.3\.6)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3.6: Phylum";
+  }
+  if (/^\s*(1\.3\.7)(\s|$)/i.test(trimmed)) {
+    return "Section 1.3.7: Kingdom";
+  }
+  if (/^\s*(1\.4)(\s|$)/i.test(trimmed)) {
+    return "Section 1.4: Taxonomical Aids";
+  }
+  if (/^\s*(1\.4\.1)(\s|$)/i.test(trimmed)) {
+    return "Section 1.4.1: Herbarium";
+  }
+  if (/^\s*(1\.4\.2)(\s|$)/i.test(trimmed)) {
+    return "Section 1.4.2: Botanical Gardens";
+  }
+  if (/^\s*(1\.4\.3)(\s|$)/i.test(trimmed)) {
+    return "Section 1.4.3: Museum";
+  }
+  if (/^\s*(1\.4\.4)(\s|$)/i.test(trimmed)) {
+    return "Section 1.4.4: Zoological Parks";
+  }
+  if (/^\s*(1\.4\.5)(\s|$)/i.test(trimmed)) {
+    return "Section 1.4.5: Key";
+  }
+  if (/^\s*(SUMMARY)(\s|$)/i.test(trimmed)) {
+    return "Section: Summary";
+  }
+  if (/^\s*(EXERCISES)(\s|$)/i.test(trimmed)) {
+    return "Section: Exercises";
   }
 
   return null;
@@ -64,8 +89,8 @@ function isNoiseLine(line: string): boolean {
     return true;
   }
   
-  // Figure captions/labels
-  if (/^Figure\s+\d+\.\d+/i.test(trimmed)) {
+  // Figure or Table captions/labels
+  if (/^(Figure|Table|TABLE)\s+\d+(\.\d+)?/i.test(trimmed)) {
     return true;
   }
   
@@ -108,16 +133,17 @@ async function main() {
   const lines = fullText.split(/\r?\n/);
 
   // Find start and end of Chapter 1
-  const startIndex = lines.findIndex(l => l.trim().toUpperCase() === "CHAPTER 1");
-  const endIndex = lines.findIndex((l, idx) => idx > startIndex && l.trim().toUpperCase() === "CHAPTER 2");
+  const startIndex = lines.findIndex(l => l.trim().toUpperCase() === "CHAPTER 1" || l.trim().toUpperCase() === "CHAPTER 1 - THE LIVING WORLD");
+  const endIndex = lines.findIndex((l, idx) => idx > startIndex && (l.trim().toUpperCase() === "CHAPTER 2" || l.trim().toUpperCase() === "CHAPTER 2:"));
 
-  if (startIndex === -1 || endIndex === -1) {
-    console.error("Could not find start or end of Chapter 1 in the source text.");
+  if (startIndex === -1) {
+    console.error("Could not find start of Chapter 1 in the source text.");
     process.exit(1);
   }
 
-  console.log(`Chapter 1 starts at line ${startIndex} and ends at line ${endIndex}`);
-  const chapterLines = lines.slice(startIndex, endIndex);
+  const finalEndIndex = endIndex === -1 ? lines.length : endIndex;
+  console.log(`Chapter 1 starts at line ${startIndex} and ends at line ${finalEndIndex}`);
+  const chapterLines = lines.slice(startIndex, finalEndIndex);
 
   // Parse lines into paragraphs grouped by section reference
   interface Paragraph {
@@ -251,15 +277,15 @@ async function main() {
     const chapter = await prisma.chapter.upsert({
       where: { number: 1 },
       update: {
-        title: "Reproduction in Organisms",
+        title: "The Living World",
         subject: "Biology",
-        grade: "Class 12"
+        grade: "Class 11"
       },
       create: {
         number: 1,
-        title: "Reproduction in Organisms",
+        title: "The Living World",
         subject: "Biology",
-        grade: "Class 12"
+        grade: "Class 11"
       }
     });
 
