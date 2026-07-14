@@ -104,17 +104,46 @@ export default function Login() {
 
           {/* Clerk mode → render Clerk's <SignIn /> */}
           {isClerkMode && ClerkSignIn ? (
-            <div className="flex justify-center">
+            <div className="flex justify-center clerk-fixit-wrapper">
               <ClerkSignIn
                 appearance={{
+                  variables: {
+                    colorPrimary: "#D97757",
+                    colorText: "#1F1E1D",
+                    colorTextSecondary: "#78756E",
+                    colorBackground: "#FFFFFF",
+                    colorInputBackground: "#FBFAF7",
+                    colorInputText: "#1F1E1D",
+                    borderRadius: "0.75rem",
+                    fontFamily: "'Source Serif 4', Georgia, serif",
+                    fontFamilyButtons: "'Inter', system-ui, sans-serif",
+                  },
                   elements: {
-                    rootBox: "w-full",
-                    card: "shadow-none border border-[#E6E2D6] rounded-2xl bg-white",
-                    headerTitle: "font-heading text-[#1F1E1D]",
-                    headerSubtitle: "font-body text-ink-soft",
-                    formButtonPrimary: "bg-clay hover:bg-clay-dark text-white font-body font-semibold",
-                    formFieldInput: "border-[#E6E2D6] font-body",
-                    footerActionLink: "text-clay hover:text-clay-dark",
+                    rootBox: "w-full max-w-md",
+                    card: "shadow-[0_8px_30px_-12px_rgba(31,30,29,0.12)] border border-[#E6E2D6] rounded-2xl bg-white !bg-white",
+                    cardBox: "shadow-none",
+                    headerTitle: "font-heading text-[#1F1E1D] text-xl tracking-tight",
+                    headerSubtitle: "font-body text-[#78756E] text-sm",
+                    formButtonPrimary:
+                      "bg-[#D97757] hover:bg-[#C4684A] text-white font-semibold tracking-wide shadow-sm transition-all duration-200 rounded-xl py-2.5",
+                    formFieldInput:
+                      "border-[#E6E2D6] bg-[#FBFAF7] font-body text-[#1F1E1D] rounded-xl focus:border-[#D97757] focus:ring-1 focus:ring-[#D97757]/30 transition-colors",
+                    formFieldLabel: "font-body text-[#78756E] text-xs font-semibold uppercase tracking-wider",
+                    socialButtonsBlockButton:
+                      "border-[#E6E2D6] bg-white hover:bg-[#FBFAF7] text-[#1F1E1D] font-body rounded-xl transition-all duration-200 shadow-sm",
+                    socialButtonsBlockButtonText: "font-body font-medium text-sm text-[#1F1E1D]",
+                    dividerLine: "bg-[#E6E2D6]",
+                    dividerText: "text-[#A8A49A] font-body text-xs",
+                    footerAction: "font-body",
+                    footerActionLink: "text-[#D97757] hover:text-[#C4684A] font-semibold",
+                    footerActionText: "text-[#78756E]",
+                    identityPreview: "bg-[#FBFAF7] border-[#E6E2D6] rounded-xl",
+                    identityPreviewText: "text-[#1F1E1D] font-body",
+                    identityPreviewEditButton: "text-[#D97757] hover:text-[#C4684A]",
+                    formResendCodeLink: "text-[#D97757] hover:text-[#C4684A]",
+                    alert: "bg-[#FEF3EE] border-[#F0D8CC] text-[#C4684A] rounded-xl",
+                    badge: "bg-[#FEF3EE] text-[#D97757] border-[#F0D8CC]",
+                    internal: "bg-white",
                   },
                 }}
               />
