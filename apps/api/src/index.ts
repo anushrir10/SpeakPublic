@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
+import cors from "cors";
 import { clerkMiddleware, requireAuth } from "@clerk/express";
 import { PrismaClient } from "@fixit/db";
 import OpenAI from "openai";
@@ -11,6 +12,7 @@ const prisma = new PrismaClient();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const PORT = process.env.PORT || 3001;
 
+app.use(cors());
 app.use(express.json());
 
 // Health check (no auth)
