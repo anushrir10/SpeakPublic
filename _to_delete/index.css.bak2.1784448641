@@ -650,6 +650,102 @@ h1, h2, h3, h4, h5, h6 {
 .dark .border-red-200 { border-color: rgba(239,68,68,0.35); }
 .dark .text-red-600 { color: #F0857C; }
 
+/* ============================================================
+   CLERK SIGN-IN WIDGET OVERRIDES
+   Forces the Clerk card to stay light-themed and match FixIt's
+   warm-parchment design language in both light and dark mode.
+   ============================================================ */
+.clerk-fixit-wrapper .cl-card,
+.clerk-fixit-wrapper .cl-rootBox,
+.clerk-fixit-wrapper .cl-cardBox {
+  background-color: #FFFFFF !important;
+  border-color: #E6E2D6 !important;
+  color: #1F1E1D !important;
+  box-shadow: 0 8px 30px -12px rgba(31,30,29,0.12) !important;
+}
+
+.clerk-fixit-wrapper .cl-headerTitle {
+  color: #1F1E1D !important;
+}
+
+.clerk-fixit-wrapper .cl-headerSubtitle {
+  color: #78756E !important;
+}
+
+.clerk-fixit-wrapper .cl-formFieldInput,
+.clerk-fixit-wrapper .cl-phoneNumberInput input {
+  background-color: #FBFAF7 !important;
+  border-color: #E6E2D6 !important;
+  color: #1F1E1D !important;
+}
+
+.clerk-fixit-wrapper .cl-formFieldInput:focus,
+.clerk-fixit-wrapper .cl-formFieldInput:focus-within {
+  border-color: #D97757 !important;
+  box-shadow: 0 0 0 2px rgba(217,119,87,0.15) !important;
+}
+
+.clerk-fixit-wrapper .cl-formButtonPrimary {
+  background-color: #D97757 !important;
+  color: #FFFFFF !important;
+}
+
+.clerk-fixit-wrapper .cl-formButtonPrimary:hover {
+  background-color: #C4684A !important;
+}
+
+.clerk-fixit-wrapper .cl-socialButtonsBlockButton {
+  background-color: #FFFFFF !important;
+  border-color: #E6E2D6 !important;
+  color: #1F1E1D !important;
+}
+
+.clerk-fixit-wrapper .cl-socialButtonsBlockButton:hover {
+  background-color: #FBFAF7 !important;
+}
+
+.clerk-fixit-wrapper .cl-dividerLine {
+  background-color: #E6E2D6 !important;
+}
+
+.clerk-fixit-wrapper .cl-dividerText {
+  color: #A8A49A !important;
+}
+
+.clerk-fixit-wrapper .cl-footerActionLink {
+  color: #D97757 !important;
+}
+
+.clerk-fixit-wrapper .cl-footerActionLink:hover {
+  color: #C4684A !important;
+}
+
+.clerk-fixit-wrapper .cl-footerActionText,
+.clerk-fixit-wrapper .cl-footer {
+  color: #78756E !important;
+}
+
+.clerk-fixit-wrapper .cl-formFieldLabel {
+  color: #78756E !important;
+}
+
+.clerk-fixit-wrapper .cl-identityPreview {
+  background-color: #FBFAF7 !important;
+  border-color: #E6E2D6 !important;
+}
+
+.clerk-fixit-wrapper .cl-badge {
+  background-color: #FEF3EE !important;
+  color: #D97757 !important;
+  border-color: #F0D8CC !important;
+}
+
+/* Clerk internal elements that inherit dark-mode bg */
+.clerk-fixit-wrapper .cl-internal-b8jhjk,
+.clerk-fixit-wrapper [data-localization-key] {
+  color: #1F1E1D !important;
+}
+
 /* view-transition: keep the outgoing frame static beneath the reveal */
 ::view-transition-image-pair(root) { isolation: auto; }
 ::view-transition-old(root),

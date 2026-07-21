@@ -57,22 +57,6 @@ export const retrieveContent = async (query, topK = 5) => {
   }
 };
 
-// ─── Scan OCR (text layer over scanned pages) ────────────
-// GET /api/ocr?src=<image path> — OCR word boxes for a scanned page image so the
-// frontend can overlay a transparent, selectable text layer on the scan.
-// Returns { src, width, height, tokens:[{ text, x, y, w, h }] } (coords 0..1)
-// or null when unavailable (endpoint not implemented yet, or no OCR for the scan).
-export const fetchPageOcr = async (src) => {
-  if (!src) return null;
-  try {
-    const { data } = await api.get("/api/ocr", { params: { src } });
-    return data && Array.isArray(data.tokens) ? data : null;
-  } catch (err) {
-    console.warn("[api] fetchPageOcr failed:", err.message);
-    return null;
-  }
-};
-
 // ─── Chapters & Chunks (Week 2) ──────────────────────────
 // GET /api/chapters — list all chapters, ordered by number.
 // Returns Chapter[] ({ id, number, title, subject, grade }) or null on failure.

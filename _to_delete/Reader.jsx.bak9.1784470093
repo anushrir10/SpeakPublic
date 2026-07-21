@@ -12,8 +12,6 @@ import AnalyticsBadge from "./AnalyticsBadge";
 import ThemeToggle from "./ThemeToggle";
 import ChapterNav from "./ChapterNav";
 import ContextualPanel from "./ContextualPanel";
-import ScanTextLayer from "./ScanTextLayer";
-import { usePageOcr } from "../hooks/usePageOcr";
 
 export default function Reader() {
   const {
@@ -183,9 +181,6 @@ export default function Reader() {
   // Simplified content follows the first chunk shown on this page.
   const firstChunkId = pageChunks.length > 0 ? pageChunks[0].id : null;
   const { simplified, loading: simplifiedLoading, tier, setTier, TIERS } = useSimplifiedContent(firstChunkId);
-
-  // OCR word boxes for the current scan → enables real text selection over the image.
-  const { ocr: pageOcr } = usePageOcr(currentPage?.imageUrl);
 
   if (!activeBook) return null;
 
@@ -813,20 +808,12 @@ export default function Reader() {
           )}
 
           {currentPage.imageUrl && (leftView === "scan" || !currentPage.originalText) ? (
-            <div className="flex-1 w-full flex items-center justify-center p-4 overflow-auto">
-              {pageOcr && pageOcr.tokens?.length > 0 ? (
-                <ScanTextLayer
-                  src={currentPage.imageUrl}
-                  alt={`${activeBook.title} - Page ${currentPage.pageNumber}`}
-                  tokens={pageOcr.tokens}
-                />
-              ) : (
-                <img
-                  src={currentPage.imageUrl}
-                  alt={`${activeBook.title} - Page ${currentPage.pageNumber}`}
-                  className="max-w-full max-h-[80vh] object-contain rounded-md shadow-lg border border-[#E6E2D6] pointer-events-none select-none"
-                />
-              )}
+            <div className="flex-1 w-full flex items-center justify-center p-4 overflow-hidden">
+              <img
+                src={currentPage.imageUrl}
+                alt={`${activeBook.title} - Page ${currentPage.pageNumber}`}
+                className="max-w-full max-h-[80vh] object-contain rounded-md shadow-lg border border-[#E6E2D6] pointer-events-none select-none"
+              />
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto p-6 md:p-8 select-text" style={{ userSelect: "text" }}>
