@@ -12,8 +12,6 @@ import AnalyticsBadge from "./AnalyticsBadge";
 import ThemeToggle from "./ThemeToggle";
 import ChapterNav from "./ChapterNav";
 import ContextualPanel from "./ContextualPanel";
-import ScanTextLayer from "./ScanTextLayer";
-import { usePageOcr } from "../hooks/usePageOcr";
 
 export default function Reader() {
   const {
@@ -52,9 +50,6 @@ export default function Reader() {
 
   // Mobile viewport tab: 'book' | 'summary'
   const [mobileTab, setMobileTab] = useState("book");
-
-  // Left pane view: scanned page image vs. selectable text
-  const [leftView, setLeftView] = useState("text");
   
   // Page flip animation state: 'next' | 'prev' | null
   const [isFlipping, setIsFlipping] = useState(null);
@@ -70,12 +65,6 @@ export default function Reader() {
 
   // Dictionary lookup definition
   const [customDefinition, setCustomDefinition] = useState("");
-
-  // Retrieved passages from POST /api/retrieve for the current selection.
-  const [retrieveResults, setRetrieveResults] = useState(null);
-  const [retrieveLoading, setRetrieveLoading] = useState(false);
-  const [retrieveError, setRetrieveError] = useState(false);
-  const retrieveReqIdRef = useRef(0);
 
   // User custom highlights array of strings
   const [userHighlights, setUserHighlights] = useState(() => {
@@ -93,7 +82,6 @@ export default function Reader() {
 
   // Reference to summary container to calculate selection boundaries
   const summaryContainerRef = useRef(null);
-  const bookContainerRef = useRef(null);
 
   // Save custom highlights and notes
   useEffect(() => {
@@ -184,98 +172,39 @@ export default function Reader() {
   const firstChunkId = pageChunks.length > 0 ? pageChunks[0].id : null;
   const { simplified, loading: simplifiedLoading, tier, setTier, TIERS } = useSimplifiedContent(firstChunkId);
 
-  // OCR word boxes for the current scan → enables real text selection over the image.
-  const { ocr: pageOcr } = usePageOcr(currentPage?.imageUrl);
-
   if (!activeBook) return null;
 
   const conceptMap = currentPage?.concepts || {};
-
-  // Flashcards for the deck: prefer the API's cards; otherwise build a study set
-  // from the book's local concepts so the deck always has something to review.
-  const buildLocalFlashcards = () => {
-    if (!activeBook?.pages) return [];
-    const cards = [];
-    activeBook.pages.forEach((pg, pi) => {
-      const concepts = pg.concepts || {};
-      Object.entries(concepts).forEach(([key, c], ci) => {
-        if (c?.flashcard?.front && c?.flashcard?.back) {
-          cards.push({
-            id: `local-qa-${pi}-${ci}-${key}`,
-            type: "qa",
-            question: c.flashcard.front,
-            answer: c.flashcard.back,
-            difficulty: "medium",
-          });
-        }
-        if (c?.mcq?.question && Array.isArray(c?.mcq?.options)) {
-          cards.push({
-            id: `local-mcq-${pi}-${ci}-${key}`,
-            type: "mcq",
-            question: c.mcq.question,
-            options: c.mcq.options,
-            answer: c.mcq.options[c.mcq.correctIndex] ?? c.mcq.options[0],
-            difficulty: "medium",
-          });
-        }
-      });
-    });
-    return cards;
-  };
-  const deckFlashcards = flashcards.length > 0 ? flashcards : buildLocalFlashcards();
-
-  // Fetch genuine textbook passages for the selected text from POST /api/retrieve.
-  // A request-id ref discards stale responses when the selection changes quickly.
-  const runRetrieve = async (text) => {
-    const reqId = ++retrieveReqIdRef.current;
-    setRetrieveLoading(true);
-    setRetrieveError(false);
-    setRetrieveResults(null);
-    const data = await retrieveContent(text, 5);
-    if (reqId !== retrieveReqIdRef.current) return; // superseded by a newer selection
-    if (data === null) {
-      setRetrieveError(true);
-      setRetrieveResults(null);
-    } else {
-      setRetrieveResults(data);
-    }
-    setRetrieveLoading(false);
-  };
 
   // Monitor text selections in the summary pane
   const handleTextSelection = () => {
     const selection = window.getSelection();
     const text = selection.toString().trim();
 
-    if (text.length > 2 && selection.rangeCount > 0) {
-      const rect = selection.getRangeAt(0).getBoundingClientRect();
-      // Accept a selection made in EITHER reading pane (left text or right summary).
-      const inside = [summaryContainerRef.current, bookContainerRef.current]
-        .filter(Boolean)
-        .some((cont) => {
-          const cr = cont.getBoundingClientRect();
-          return (
-            rect.left >= cr.left &&
-            rect.right <= cr.right &&
-            rect.top >= cr.top &&
-            rect.bottom <= cr.bottom
-          );
-        });
-      if (inside) {
-        // Mirror the exact selected passage into the Study Assistant, open it,
-        // and fetch genuine passages from POST /api/retrieve.
+    if (text.length > 2 && selection.rangeCount > 0 && summaryContainerRef.current) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      const containerRect = summaryContainerRef.current.getBoundingClientRect();
+
+      // Ensure selection is inside the summary column
+      if (
+        rect.left >= containerRect.left &&
+        rect.right <= containerRect.right &&
+        rect.top >= containerRect.top &&
+        rect.bottom <= containerRect.bottom
+      ) {
+        // Mirror the exact selected passage into the Study Assistant…
         setSelectionText(text);
+        setNoteInput(userNotes[text] || "");
+        setCustomDefinition(`Selected term "${text}" in the context of ${activeBook.title}. Turn it into a flashcard, quiz and study note.`);
+        // …and open it automatically.
         setSidebarOpen(true);
-        runRetrieve(text);
         return;
       }
     }
     // No active selection in the reading pane → send the Study Assistant back.
     setSelectionText("");
     setSidebarOpen(false);
-    setRetrieveResults(null);
-    setRetrieveError(false);
-    setRetrieveLoading(false);
   };
 
   // Chapter selection: local sections jump to a page; live chapters swap the
@@ -510,7 +439,7 @@ export default function Reader() {
               <h3 className="font-heading text-stone-800 text-base tracking-tight font-semibold leading-none">
                 Study Assistant
               </h3>
-              <p className="text-[11px] text-stone-400 font-body mt-1">Live passage retrieval</p>
+              <p className="text-[11px] text-stone-400 font-body mt-1">Highlights, notes &amp; cards</p>
             </div>
           </div>
           <button
@@ -532,7 +461,6 @@ export default function Reader() {
 
             {selectionText ? (
               <div className="space-y-3.5">
-                {/* The selected passage is the retrieval query */}
                 <div
                   className="p-3.5 rounded-xl bg-clay-tint text-sm italic text-stone-700 leading-relaxed max-h-36 overflow-y-auto"
                   style={{ borderLeft: '3px solid #D97757' }}
@@ -540,79 +468,52 @@ export default function Reader() {
                   "{selectionText}"
                 </div>
 
-                {/* Quick actions on the selection */}
-                <div className="grid grid-cols-2 gap-2">
+                {/* Definition */}
+                <div className="text-xs text-stone-500 bg-[#FBFAF7] p-3 border border-[#E6E2D6] rounded-xl leading-relaxed">
+                  <span className="font-semibold text-stone-600 flex items-center gap-1.5 mb-1">
+                    <MagnifyingGlass className="w-3.5 h-3.5 text-clay" /> Definition
+                  </span>
+                  {customDefinition}
+                </div>
+
+                {/* Note Input */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">
+                    Sticky note
+                  </label>
+                  <textarea
+                    value={noteInput}
+                    onChange={(e) => setNoteInput(e.target.value)}
+                    placeholder="Jot a study reference..."
+                    className="w-full text-sm p-3 tactile-input focus:outline-none leading-relaxed"
+                    rows={3}
+                  />
                   <button
-                    onClick={() => { setSidebarOpen(false); handleAsk(selectionText); }}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-clay text-white text-xs font-semibold hover:bg-clay-dark transition cursor-pointer shadow-sm"
+                    onClick={handleSaveNote}
+                    className="w-full py-2.5 text-stone-700 tactile-btn font-body text-xs tracking-wide font-medium flex items-center justify-center gap-1.5"
+                  >
+                    <FloppyDisk className="w-4 h-4" />
+                    Save note
+                  </button>
+                </div>
+
+                {/* Ask + Study actions */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleAsk(selectionText)}
+                    className="w-full py-3 tactile-btn-primary font-body text-xs tracking-wide font-semibold flex items-center justify-center gap-1.5"
                   >
                     <ChatCircleDots className="w-4 h-4" weight="fill" />
-                    Ask FixIt
+                    Ask FixIt about this
                   </button>
                   <button
-                    onClick={() => { setSidebarOpen(false); applyHighlightAndStudy(selectionText); setActiveTab("flashcard"); }}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-clay/40 bg-clay-tint text-clay-dark text-xs font-semibold hover:bg-clay hover:text-white transition cursor-pointer"
+                    onClick={() => applyHighlightAndStudy()}
+                    className="w-full py-2.5 tactile-btn font-body text-xs tracking-wide font-medium flex items-center justify-center gap-1.5"
                   >
-                    <Cards className="w-4 h-4" weight="duotone" />
-                    Flashcard
+                    <Sparkle className="w-4 h-4 text-clay" weight="fill" />
+                    Highlight &amp; study card
                   </button>
                 </div>
-
-                {/* Retrieved passages — raw output from POST /api/retrieve */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] uppercase font-semibold tracking-wider text-stone-400 flex items-center gap-1.5">
-                    <MagnifyingGlass className="w-3.5 h-3.5 text-clay" />
-                    Retrieved passages
-                  </span>
-                  {retrieveResults && !retrieveLoading && !retrieveError && (
-                    <span className="text-[11px] font-semibold text-clay bg-clay-tint px-2 py-0.5 rounded-full leading-none">
-                      {retrieveResults.length}
-                    </span>
-                  )}
-                </div>
-
-                {retrieveLoading ? (
-                  <div className="space-y-3 animate-pulse">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="rounded-xl border border-[#E6E2D6] p-3 space-y-2">
-                        <div className="h-2.5 w-20 rounded-full bg-stone-200" />
-                        <div className="h-2.5 w-full rounded-full bg-stone-200" />
-                        <div className="h-2.5 w-4/5 rounded-full bg-stone-200" />
-                      </div>
-                    ))}
-                  </div>
-                ) : retrieveError ? (
-                  <div className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-xl p-3 leading-relaxed">
-                    Couldn't reach the retrieval service. Make sure the API is reachable, then reselect the text.
-                  </div>
-                ) : retrieveResults && retrieveResults.length > 0 ? (
-                  <div className="space-y-3">
-                    {retrieveResults.map((r, idx) => (
-                      <div
-                        key={r.chunkId || idx}
-                        className="rounded-xl border border-[#E6E2D6] bg-[#FBFAF7] p-3 hover:border-clay/40 transition"
-                      >
-                        <div className="flex items-center justify-between mb-2 gap-2">
-                          <span className="text-[10px] font-semibold text-clay bg-clay-tint px-2 py-0.5 rounded-full leading-none shrink-0">
-                            § {r.sectionRef ?? "—"}
-                          </span>
-                          {typeof r.similarity === "number" && (
-                            <span className="text-[10px] font-semibold text-stone-500 tabular-nums" title="Cosine similarity to your selection">
-                              {(r.similarity * 100).toFixed(1)}% match
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-stone-700 leading-relaxed whitespace-pre-line">
-                          {r.content}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : retrieveResults ? (
-                  <p className="text-xs text-stone-400 italic text-center py-6 bg-[#FBFAF7] rounded-xl border border-dashed border-[#E6E2D6]">
-                    No matching passages found for this selection.
-                  </p>
-                ) : null}
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-[#E6E2D6] bg-[#FBFAF7] px-5 py-8 text-center">
@@ -620,7 +521,7 @@ export default function Reader() {
                   <CursorText className="w-5 h-5 text-clay" weight="duotone" />
                 </div>
                 <p className="text-xs text-stone-500 leading-relaxed">
-                  Select any text in the reading pane to retrieve the most relevant textbook passages.
+                  Select any text in the summary to define it, add a note, or turn it into a flashcard.
                 </p>
               </div>
             )}
@@ -735,16 +636,6 @@ export default function Reader() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            id="open-flashcards"
-            onClick={() => setDeckOpen(true)}
-            disabled={deckFlashcards.length === 0}
-            title="Study flashcards for this book"
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl border border-clay/40 bg-clay-tint text-clay-dark hover:bg-clay hover:text-white transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Cards className="w-3.5 h-3.5" weight="duotone" />
-            Flashcards{deckFlashcards.length ? ` (${deckFlashcards.length})` : ""}
-          </button>
           <AnalyticsBadge reviewCount={reviewCount} animate={badgeAnimate} />
           <span className="text-xs font-body text-stone-500 font-medium">
             Page {activePageNum} of {activeBook.pages.length}
@@ -784,64 +675,32 @@ export default function Reader() {
       {/* Main Workspace (Split View Book Desk - centered and scaled larger) */}
       <div className="flex-1 w-full max-w-[94vw] mx-auto my-3 flex gap-0 relative items-stretch overflow-hidden rounded-2xl border border-[#E6E2D6] shadow-[0_20px_50px_-28px_rgba(31,30,29,0.35)] bg-white select-none">
         
-        {/* LEFT PAGE: scanned page OR selectable text (hidden on mobile if summary active) */}
-        <div
-          ref={bookContainerRef}
-          onMouseUp={handleTextSelection}
-          className={`flex-1 printed-page page-stack-left rounded-l-lg flex flex-col overflow-hidden bg-[#FBFAF7] relative border-r border-[#E6E2D6] ${
+        {/* LEFT PAGE: Textbook scan (hidden on mobile if summary active) */}
+        <div 
+          className={`flex-1 printed-page page-stack-left rounded-l-lg flex flex-col justify-center items-center overflow-hidden p-4 bg-[#FBFAF7] relative border-r border-[#E6E2D6] ${
             mobileTab === "book" ? "flex" : "hidden md:flex"
           } ${isFlipping ? "animate-flip-left" : ""}`}
         >
-          {/* Scan / Text view toggle — only when both a scan and text exist */}
-          {currentPage.imageUrl && currentPage.originalText && (
-            <div className="flex items-center justify-end px-3 pt-3 shrink-0 select-none">
-              <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-[#F2EFE7] border border-[#E6E2D6]">
-                {["scan", "text"].map((v) => (
-                  <button
-                    key={v}
-                    id={`left-view-${v}`}
-                    onClick={() => setLeftView(v)}
-                    className={`px-2.5 py-0.5 rounded-md font-body text-[10px] font-semibold uppercase tracking-wide transition-all cursor-pointer ${
-                      leftView === v ? "bg-white text-clay-dark shadow-sm" : "text-stone-400 hover:text-stone-700"
-                    }`}
-                  >
-                    {v === "scan" ? "Scan" : "Text"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {currentPage.imageUrl && (leftView === "scan" || !currentPage.originalText) ? (
-            <div className="flex-1 w-full flex items-center justify-center p-4 overflow-auto">
-              {pageOcr && pageOcr.tokens?.length > 0 ? (
-                <ScanTextLayer
-                  src={currentPage.imageUrl}
-                  alt={`${activeBook.title} - Page ${currentPage.pageNumber}`}
-                  tokens={pageOcr.tokens}
-                />
-              ) : (
-                <img
-                  src={currentPage.imageUrl}
-                  alt={`${activeBook.title} - Page ${currentPage.pageNumber}`}
-                  className="max-w-full max-h-[80vh] object-contain rounded-md shadow-lg border border-[#E6E2D6] pointer-events-none select-none"
-                />
-              )}
+          {currentPage.imageUrl ? (
+            <div className="w-full h-full flex items-center justify-center p-1 relative">
+              <img
+                src={currentPage.imageUrl}
+                alt={`${activeBook.title} - Page ${currentPage.pageNumber}`}
+                className="max-w-full max-h-[85vh] object-contain rounded-md shadow-lg border border-[#E6E2D6] pointer-events-none select-none"
+              />
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 select-text" style={{ userSelect: "text" }}>
-              <div className="prose max-w-none w-full flex flex-col min-h-full">
-                <div className="flex justify-between items-center text-[10px] uppercase font-bold text-stone-400 border-b border-[#E6E2D6] pb-2 mb-6 select-none">
-                  <span>{activeBook.subject} Curriculum</span>
-                  <span>Select any line to study it</span>
-                </div>
-                <div
-                  className="text-stone-800 leading-relaxed text-sm md:text-base space-y-4 flex-1"
-                  dangerouslySetInnerHTML={{ __html: currentPage.originalText || "" }}
-                />
-                <div className="text-center font-heading text-stone-400 text-xs border-t border-[#E6E2D6] pt-4 mt-8 select-none">
-                  - PAGE {currentPage.pageNumber} -
-                </div>
+            <div className="prose max-w-none text-stone-900 font-body p-6 w-full h-full flex flex-col justify-between">
+              <div className="flex justify-between items-center text-[10px] uppercase font-bold text-stone-400 border-b border-[#E6E2D6] pb-2 mb-6">
+                <span>{activeBook.subject} Curriculum</span>
+                <span>FixIt Digitized Page</span>
+              </div>
+              <div 
+                className="text-stone-800 leading-relaxed text-sm md:text-base space-y-4"
+                dangerouslySetInnerHTML={{ __html: currentPage.originalText }}
+              />
+              <div className="text-center font-heading text-stone-400 text-xs border-t border-[#E6E2D6] pt-4 mt-8">
+                - PAGE {currentPage.pageNumber} -
               </div>
             </div>
           )}
@@ -974,15 +833,15 @@ export default function Reader() {
                 : "Keywords trigger definitions, interactive flashcards, and checks on your right panel."}
             </span>
 
-            {/* Flashcard deck trigger — API cards when available, else local set */}
-            {deckFlashcards.length > 0 && (
+            {/* DB Flashcard Deck trigger — live mode only, when chapter has cards */}
+            {livePage && flashcards.length > 0 && (
               <button
                 id="open-db-deck"
                 onClick={() => setDeckOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-clay/40 bg-clay-tint text-clay-dark font-body text-[10px] font-semibold hover:bg-clay hover:text-white transition shrink-0 cursor-pointer"
               >
                 <Cards className="w-3.5 h-3.5" weight="duotone" />
-                Study Flashcards ({deckFlashcards.length})
+                Study Flashcards ({flashcards.length})
               </button>
             )}
           </div>
@@ -1044,7 +903,7 @@ export default function Reader() {
       {/* DB Flashcard Deck Modal */}
       <DBFlashcardDeck
         open={deckOpen}
-        flashcards={deckFlashcards}
+        flashcards={flashcards}
         chapterTitle={
           liveMode && activeChapter
             ? `${activeChapter.title} — ${activeChapter.subject}`
