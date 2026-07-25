@@ -10,7 +10,15 @@
     "test-retrieval": "tsx src/scripts/test-retrieval.ts",
     "type-check": "node ../../node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/tsc.js --noEmit"
   },
+  "dependencies": {
+    "@fixit/db": "workspace:*",
+    "openai": "^6.46.0",
+    "dotenv": "^16.3.1",
+    "gpt-3-encoder": "^1.1.4",
+    "pdf-parse": "^1.1.1"
+  },
   "devDependencies": {
+    "@types/pdf-parse": "^1.1.4",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   },

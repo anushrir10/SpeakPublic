@@ -42,13 +42,33 @@ export const healthCheck = async () => {
 };
 
 // ─── Content Retrieval ───────────────────────────────────
-// POST /api/retrieve — search content chunks by query text
-export const retrieveContent = async (query) => {
+// POST /api/retrieve — semantic search over content chunks.
+// Body: { query, topK }. Returns Chunk[] ({ chunkId, content, sectionRef,
+// chapterId, similarity }) on success, or null on failure.
+export const retrieveContent = async (query, topK = 5) => {
   try {
-    const { data } = await api.post("/api/retrieve", { query });
-    return data;
+    const { data } = await api.post("/api/retrieve", { query, topK });
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.results)) return data.results; // tolerate a wrapped shape
+    return [];
   } catch (err) {
     console.warn("[api] Retrieve failed:", err.message);
+    return null;
+  }
+};
+
+// ─── Scan OCR (text layer over scanned pages) ────────────
+// GET /api/ocr?src=<image path> — OCR word boxes for a scanned page image so the
+// frontend can overlay a transparent, selectable text layer on the scan.
+// Returns { src, width, height, tokens:[{ text, x, y, w, h }] } (coords 0..1)
+// or null when unavailable (endpoint not implemented yet, or no OCR for the scan).
+export const fetchPageOcr = async (src) => {
+  if (!src) return null;
+  try {
+    const { data } = await api.get("/api/ocr", { params: { src } });
+    return data && Array.isArray(data.tokens) ? data : null;
+  } catch (err) {
+    console.warn("[api] fetchPageOcr failed:", err.message);
     return null;
   }
 };
