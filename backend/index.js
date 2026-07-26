@@ -23,12 +23,11 @@ function simplifyText(text) {
   return sentences.map((sentence, index) => `${index + 1}. ${sentence.trim()}`).join('\n');
 }
 
+// Serve legacy root site (index.html at repository root)
+const rootStatic = path.join(__dirname, '..');
+app.use('/', express.static(rootStatic));
 app.get('/', (req, res) => {
-  res.json({
-    app: 'SpeakPublic API',
-    status: 'live',
-    version: '1.0'
-  });
+  res.sendFile(path.join(rootStatic, 'index.html'));
 });
 
 app.get('/health', (req, res) => {
