@@ -1,6 +1,8 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/app/:path*", "destination": "/index.html" },
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/:path*", "destination": "https://speakpublic.onrender.com/:path*" }
   ],
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
