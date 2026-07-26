@@ -1,126 +1,140 @@
 import { PrismaClient } from "@fixit/db";
-import { OpenAI } from "openai";
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
 import dotenv from "dotenv";
+import { OpenAI } from "openai";
+import path from "path";
 
-// Load environment variables
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
 const prisma = new PrismaClient();
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
-});
-
 const BATCH_SIZE = 20;
+const EMBEDDING_MODEL = "text-embedding-3-small";
 
-async function embedTextWithRetry(texts: string[], retries = 5, delay = 1000): Promise<number[][]> {
+function parseChapterNumbers(): number[] | undefined {
+  const value = process.argv
+    .slice(2)
+    .find((argument) => argument.startsWith("--chapters="))
+    ?.split("=")[1];
+
+  if (!value) return undefined;
+
+  const chapterNumbers = value.split(",").map(Number);
+  if (
+    chapterNumbers.length === 0 ||
+    chapterNumbers.some(
+      (chapterNumber) =>
+        !Number.isInteger(chapterNumber) ||
+        chapterNumber < 1 ||
+        chapterNumber > 5,
+    )
+  ) {
+    throw new Error("--chapters must be a comma-separated subset of 1,2,3,4,5.");
+  }
+
+  return [...new Set(chapterNumbers)];
+}
+
+async function embedTextWithRetry(
+  openai: OpenAI,
+  texts: string[],
+  retries = 5,
+  delay = 1_000,
+): Promise<number[][]> {
   try {
     const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
+      model: EMBEDDING_MODEL,
       input: texts,
     });
-    return response.data.map(d => d.embedding);
+    return response.data.map((item) => item.embedding);
   } catch (error: any) {
-    if (retries > 0 && (error.status === 429 || error.status >= 500)) {
-      console.warn(`OpenAI API rate limit or error. Retrying in ${delay}ms... (Attempts remaining: ${retries})`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return embedTextWithRetry(texts, retries - 1, delay * 2);
+    const quotaExhausted =
+      error?.code === "insufficient_quota" ||
+      error?.message?.toLowerCase().includes("exceeded your current quota");
+    if (
+      !quotaExhausted &&
+      retries > 0 &&
+      (error?.status === 429 || error?.status >= 500)
+    ) {
+      console.warn(
+        `Embedding request failed; retrying in ${delay}ms (${retries} retries left).`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return embedTextWithRetry(openai, texts, retries - 1, delay * 2);
     }
     throw error;
   }
 }
 
 async function main() {
-  const args = process.argv.slice(2);
-  const useMock = args.includes("--mock");
-
-  if (!useMock && (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY.includes("sk-proj-..."))) {
-    console.error("Error: OPENAI_API_KEY is not configured in the .env file. Pass the --mock flag to run with mock embeddings.");
-    process.exit(1);
+  const chapterNumbers = parseChapterNumbers();
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not configured.");
   }
 
-  console.log("Fetching unembedded chunks from database...");
-  
-  // Find chunks that do not have an associated chunk embedding
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  console.log(
+    `Fetching unembedded chunks${chapterNumbers ? ` for Chapters ${chapterNumbers.join(", ")}` : ""}...`,
+  );
+
   const chunks = await prisma.chunk.findMany({
     where: {
-      embeddings: {
-        none: {}
-      }
+      embeddings: { none: {} },
+      ...(chapterNumbers
+        ? { chapter: { number: { in: chapterNumbers } } }
+        : {}),
     },
-    orderBy: {
-      createdAt: "asc"
-    }
+    orderBy: [{ chapter: { number: "asc" } }, { createdAt: "asc" }],
+    include: { chapter: { select: { number: true } } },
   });
 
   if (chunks.length === 0) {
-    console.log("All chunks are already embedded! Nothing to do.");
+    console.log("All selected chunks are already embedded.");
     return;
   }
 
-  console.log(`Found ${chunks.length} unembedded chunks. Starting embedding pipeline...`);
+  console.log(`Embedding ${chunks.length} chunks in batches of ${BATCH_SIZE}.`);
 
-  // Process in batches
-  for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
-    const batch = chunks.slice(i, i + BATCH_SIZE);
-    const texts = batch.map((c: any) => c.content);
+  for (let index = 0; index < chunks.length; index += BATCH_SIZE) {
+    const batch = chunks.slice(index, index + BATCH_SIZE);
+    console.log(
+      `Embedding batch ${Math.floor(index / BATCH_SIZE) + 1}/${Math.ceil(chunks.length / BATCH_SIZE)} (${batch.length} chunks)...`,
+    );
+    const embeddings = await embedTextWithRetry(
+      openai,
+      batch.map((chunk) => chunk.content),
+    );
 
-    console.log(`Embedding batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(chunks.length / BATCH_SIZE)} (Size: ${batch.length})...`);
-    
-    try {
-      let embeddings: number[][];
-      if (useMock) {
-        console.log(`Generating mock embeddings for batch...`);
-        embeddings = batch.map(() => Array.from({ length: 1536 }, () => (Math.random() - 0.5) * 0.1));
-      } else {
-        try {
-          embeddings = await embedTextWithRetry(texts);
-        } catch (err: any) {
-          if (err.status === 429 || err.code === "insufficient_quota" || (err.message && err.message.includes("quota"))) {
-            console.warn("OpenAI API Quota exceeded or error. Falling back to mock embeddings for this batch...");
-            embeddings = batch.map(() => Array.from({ length: 1536 }, () => (Math.random() - 0.5) * 0.1));
-          } else {
-            throw err;
-          }
-        }
-      }
-      
-      console.log(`Saving embeddings to database...`);
-      for (let j = 0; j < batch.length; j++) {
-        const chunk = batch[j];
-        const vector = embeddings[j];
-        const vectorString = `[${vector.join(",")}]`;
+    if (embeddings.some((embedding) => embedding.length !== 1536)) {
+      throw new Error("OpenAI returned an embedding with an unexpected dimension.");
+    }
+
+    await prisma.$transaction(
+      batch.map((chunk, batchIndex) => {
+        const vectorString = `[${embeddings[batchIndex].join(",")}]`;
         const embeddingId = `cemb_${crypto.randomUUID().replace(/-/g, "")}`;
 
-        // Using executeRawUnsafe to correctly pass the pgvector cast ($3::vector)
-        await prisma.$executeRawUnsafe(
+        return prisma.$executeRawUnsafe(
           `INSERT INTO chunk_embeddings (id, "chunkId", vector, model, "createdAt")
            VALUES ($1, $2, $3::vector, $4, $5)
-           ON CONFLICT ("chunkId") 
-           DO UPDATE SET vector = $3::vector`,
+           ON CONFLICT ("chunkId")
+           DO UPDATE SET vector = EXCLUDED.vector, model = EXCLUDED.model`,
           embeddingId,
           chunk.id,
           vectorString,
-          "text-embedding-3-small",
-          new Date()
+          EMBEDDING_MODEL,
+          new Date(),
         );
-      }
-    } catch (error) {
-      console.error(`Failed to process batch starting at index ${i}:`, error);
-      process.exit(1);
-    }
+      }),
+    );
   }
 
-  console.log("Embedding pipeline completed successfully!");
+  console.log(`Embedded and saved ${chunks.length} chunks successfully.`);
 }
 
 main()
-  .catch(err => {
-    console.error("Unhandled error:", err);
-    process.exit(1);
+  .catch((error) => {
+    console.error("Embedding pipeline failed:", error);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();
