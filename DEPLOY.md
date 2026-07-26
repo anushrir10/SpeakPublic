@@ -23,6 +23,13 @@ Recommended Render settings (use Render UI or `render.yaml` in `backend/`):
 
 After deploy, note the service URL (e.g. `https://speakpublic-backend.onrender.com`) and use it for the frontend environment variable below.
 
+Your Vercel deployments (examples you provided):
+
+- https://speakpublic-jzna37inf-syntix.vercel.app (project preview)
+- https://speakpublic.vercel.app (production)
+
+Set `VITE_API_URL` in the Vercel project to `https://speakpublic.onrender.com` (the Render backend URL) before triggering a production deploy. If you already deployed, trigger a redeploy after setting the env var.
+
 ## Frontend — Vercel
 
 - Project root: `landing`

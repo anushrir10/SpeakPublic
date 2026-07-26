@@ -12,7 +12,9 @@
   },
   "host_permissions": [
     "<all_urls>",
-    "https://speakpublic.onrender.com/*"
+    "https://speakpublic.onrender.com/*",
+    "https://speakpublic.vercel.app/*",
+    "https://*.vercel.app/*"
   ],
   "action": {
     "default_popup": "popup.html",
