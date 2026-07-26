@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: speakpublic-backend
+    env: node
+    plan: free
+    region: oregon
+    startCommand: "npm start"
+    buildCommand: ""
+    envVariables:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: BHASHINI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /health
