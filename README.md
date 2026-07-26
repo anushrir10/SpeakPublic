@@ -6,7 +6,7 @@ This repository contains three deliverables:
 - `landing/` — React + Vite frontend (production built to `landing/dist/`)
 - `extension/` — Chrome Extension (MV3)
 
-Quick local checks
+# Quick local checks
 
 1. Start backend (local test):
 
@@ -14,7 +14,7 @@ Quick local checks
 cd backend
 npm install
 npm start
-# Backend reachable at http://localhost:3001
+# Backend reachable at http://localhost:3001 (or production: https://speakpublic.onrender.com)
 curl http://localhost:3001/health
 ```
 
