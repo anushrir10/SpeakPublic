@@ -1,4 +1,4 @@
-const API_URL = 'https://speakpublic-api.onrender.com';
+const API_URL = 'https://speakpublic.onrender.com';
 
 const textInput = document.getElementById('textInput');
 const resultOutput = document.getElementById('result');

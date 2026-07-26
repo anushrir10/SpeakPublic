@@ -1,4 +1,4 @@
-const API_URL = 'https://speakpublic-api.onrender.com';
+const API_URL = 'https://speakpublic.onrender.com';
 
 async function fetchSimplifiedText(text) {
   try {
