@@ -1,0 +1,110 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, sans-serif;
+  background: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body, html, #root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: #f8fafc;
+}
+
+.app {
+  padding: 24px;
+}
+
+.hero {
+  max-width: 720px;
+  margin: 0 auto 24px;
+  text-align: center;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+}
+
+.hero p {
+  margin: 0;
+  color: #475569;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 16px 64px rgba(15, 23, 42, 0.08);
+}
+
+.card label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card select,
+.card textarea {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  font-family: inherit;
+  font-size: 1rem;
+  margin-bottom: 18px;
+}
+
+.card button {
+  width: 100%;
+  border: none;
+  background: #4338ca;
+  color: white;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.card button:hover {
+  background: #312e81;
+}
+
+.result-card h2 {
+  margin-top: 0;
+}
+
+.result-box {
+  min-height: 260px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px;
+  white-space: pre-wrap;
+}
+
+.status {
+  margin: 14px 0 0;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}

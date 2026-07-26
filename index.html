@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpeakPublic — The Universal Public Information Layer</title>
+  <meta name="description" content="A real-time universal translation and accessibility layer for government, healthcare, and public websites. Adapting information into regional Indian languages and custom accessible formats.">
+  
+  <!-- Premium Fonts from Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  
+  <!-- Header / Navigation -->
+  <header id="main-header">
+    <div class="header-container">
+      <div class="logo">
+        <i class="fa-solid fa-people-arrows logo-icon"></i>
+        <span class="logo-text">Speak<span>Public</span></span>
+      </div>
+      <nav class="nav-links">
+        <a href="#hero" class="active">Overview</a>
+        <a href="#flowchart-section">How It Works</a>
+        <a href="#simulator-section">Live Simulator</a>
+        <a href="#form-video-section">Form Guide</a>
+        <a href="#community-section">Community Portal</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#simulator-section" class="btn-primary-sm">Launch Demo</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="hero">
+    <div class="hero-bg-glow"></div>
+    <div class="container hero-container">
+      <div class="hero-content">
+        <div class="badge"><i class="fa-solid fa-sparkles"></i> Redefining Public Accessibility</div>
+        <h1>Universal access to public info, in <span>any language</span>, in <span>any format</span>.</h1>
+        <p>A real-time universal translator and accessibility overlay that rewrites dense, jargon-filled public websites in regional Indian languages, simplified structures, audio guides, or sign language avatars.</p>
+        <div class="hero-ctas">
+          <a href="#simulator-section" class="btn-primary"><i class="fa-solid fa-circle-play"></i> Try the Simulator</a>
+          <a href="#flowchart-section" class="btn-secondary">Learn the Tech <i class="fa-solid fa-arrow-down"></i></a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card-stack">
+          <div class="glass-card main-card">
+            <div class="card-header">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="card-title-text"><i class="fa-solid fa-shield-halved"></i> Official Portal</span>
+            </div>
+            <div class="card-body">
+              <h4 class="blurred-text-sm">Section 14(a) Eligibility Annexure</h4>
+              <p class="jargon-preview">"Applicants must satisfy aggregate criteria aggregate income threshold..."</p>
+              <div class="translation-arrow"><i class="fa-solid fa-arrow-down-long"></i> SpeakPublic Overlay <i class="fa-solid fa-arrow-down-long"></i></div>
+              <div class="adapted-preview">
+                <span class="icon-tag">🍎</span>
+                <strong>குடும்ப வருமானம்:</strong> ஆண்டிற்கு ₹1.5 லட்சத்திற்குள் இருக்க வேண்டும்.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Flowchart Section -->
+  <section id="flowchart-section">
+    <div class="container">
+      <div class="section-title text-center">
+        <h2>From Bureaucracy to Understanding</h2>
+        <p>Click on any step of the journey below to explore how SpeakPublic transforms information delivery.</p>
+      </div>
+
+      <div class="flowchart-wrapper">
+        <!-- The visual flowchart nodes -->
+        <div class="flowchart-nodes">
+          <div class="flow-step" id="step-install" data-step="1">
+            <div class="step-badge">01</div>
+            <div class="step-icon"><i class="fa-solid fa-download"></i></div>
+            <h3>Install SpeakPublic</h3>
+            <p>Add browser extension or download mobile app</p>
+          </div>
+          
+          <div class="flow-connector"><i class="fa-solid fa-chevron-right"></i></div>
+
+          <div class="flow-step" id="step-setup" data-step="2">
+            <div class="step-badge">02</div>
+            <div class="step-icon"><i class="fa-solid fa-user-gear"></i></div>
+            <h3>One-Time Setup</h3>
+            <p>Pick regional language & accessibility profile</p>
+          </div>
+
+          <div class="flow-connector"><i class="fa-solid fa-chevron-right"></i></div>
+
+          <div class="flow-step" id="step-visit" data-step="3">
+            <div class="step-badge">03</div>
+            <div class="step-icon"><i class="fa-solid fa-globe"></i></div>
+            <h3>Visit Any Website</h3>
+            <p>Open any government, hospital, or school portal</p>
+          </div>
+
+          <div class="flow-connector"><i class="fa-solid fa-chevron-right"></i></div>
+
+          <div class="flow-step" id="step-detect" data-step="4">
+            <div class="step-badge">04</div>
+            <div class="step-icon"><i class="fa-solid fa-brain"></i></div>
+            <h3>AI Template Detection</h3>
+            <p>Detects type: medical, ration form, notice, etc.</p>
+          </div>
+
+          <div class="flow-connector-fork">
+            <div class="fork-line fork-up"></div>
+            <div class="fork-line fork-mid"></div>
+            <div class="fork-line fork-down"></div>
+          </div>
+
+          <!-- Triple fork outcomes -->
+          <div class="fork-outcomes">
+            <div class="outcome-step" id="step-lang" data-step="5a">
+              <div class="outcome-icon lang-ic"><i class="fa-solid fa-language"></i></div>
+              <h4>Regional Idioms</h4>
+              <span class="outcome-tag">Tamil, Odia, Bhojpuri...</span>
+            </div>
+            
+            <div class="outcome-step" id="step-access" data-step="5b">
+              <div class="outcome-icon access-ic"><i class="fa-solid fa-universal-access"></i></div>
+              <h4>Accessibility Mode</h4>
+              <span class="outcome-tag">Audio, Sign, Icons</span>
+            </div>
+
+            <div class="outcome-step" id="step-plain" data-step="5c">
+              <div class="outcome-icon plain-ic"><i class="fa-solid fa-feather"></i></div>
+              <h4>Plain Language</h4>
+              <span class="outcome-tag">No Jargon, Direct Tips</span>
+            </div>
+          </div>
+          
+          <div class="flow-connector"><i class="fa-solid fa-chevron-right"></i></div>
+
+          <div class="flow-step highlight-step" id="step-reach" data-step="6">
+            <div class="step-badge">06</div>
+            <div class="step-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <h3>Public Empowered</h3>
+            <p>Information is received, understood, and actionable</p>
+          </div>
+        </div>
+
+        <!-- Detail explainer display panel -->
+        <div class="glass-card flowchart-info-card" id="flowchart-info-panel">
+          <div class="info-content-default">
+            <h3><i class="fa-solid fa-hand-pointer"></i> Explore the Journey</h3>
+            <p>Click on any step of the flowchart diagram above to examine the detailed technological and user experience specifications.</p>
+          </div>
+          <div class="info-content-active hidden">
+            <h3 id="info-title">Step Title</h3>
+            <p id="info-description">Step description goes here.</p>
+            <div class="info-tech-spec">
+              <strong>Engine Action:</strong> <span id="info-tech">Tech implementation detail</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Simulator Section -->
+  <section id="simulator-section">
+    <div class="container">
+      <div class="section-title text-center">
+        <h2>Experience SpeakPublic</h2>
+        <p>Interactive playground: Toggle SpeakPublic on simulated public websites to experience real-time accessibility overlays.</p>
+      </div>
+
+      <div class="simulator-layout">
+        
+        <!-- Simulator Controls (Mock Extension Popup) -->
+        <div class="simulator-controls">
+          <div class="glass-card extension-popup">
+            <div class="popup-header">
+              <div class="header-logo">
+                <i class="fa-solid fa-people-arrows popup-logo-icon"></i>
+                <span>SpeakPublic <span>Overlay</span></span>
+              </div>
+              <div class="status-indicator">
+                <span class="pulse-dot active"></span> Active
+              </div>
+            </div>
+            
+            <div class="popup-body">
+              <!-- Master Toggle Switch -->
+              <div class="control-group switch-group">
+                <label for="speakpublic-toggle">Enable Overlay</label>
+                <div class="toggle-switch">
+                  <input type="checkbox" id="speakpublic-toggle" checked>
+                  <span class="slider"></span>
+                </div>
+              </div>
+
+              <div class="divider"></div>
+              
+              <!-- Selection: Document Mock -->
+              <div class="control-group">
+                <label for="doc-selector"><i class="fa-solid fa-file-invoice"></i> Select Mock Website</label>
+                <select id="doc-selector" class="form-select">
+                  <option value="hospital_discharge" selected>Apex Municipal Hospital (Discharge Summary)</option>
+                  <option value="ration_card">Civil Supplies Portal (Ration Card Renewal)</option>
+                  <option value="school_admission">School Education Board (Primary Admission)</option>
+                </select>
+              </div>
+
+              <!-- Selection: Regional Language -->
+              <div class="control-group">
+                <label for="lang-selector"><i class="fa-solid fa-language"></i> Target Regional Language</label>
+                <select id="lang-selector" class="form-select">
+                  <option value="tamil" selected>Tamil (தமிழ்)</option>
+                  <option value="odia">Odia (ଓଡ଼ିଆ)</option>
+                  <option value="bhojpuri">Bhojpuri (भोजपुरी)</option>
+                </select>
+              </div>
+
+              <!-- Selection: Accessibility Mode -->
+              <div class="control-group">
+                <label><i class="fa-solid fa-universal-access"></i> Accessibility Layout</label>
+                <div class="radio-cards">
+                  <label class="radio-card active">
+                    <input type="radio" name="access-mode" value="none" checked>
+                    <span class="radio-text">
+                      <span class="title">Standard</span>
+                      <span class="desc">Only translation</span>
+                    </span>
+                  </label>
+                  
+                  <label class="radio-card">
+                    <input type="radio" name="access-mode" value="visual">
+                    <span class="radio-text">
+                      <span class="title">Visual Adapt</span>
+                      <span class="desc">Audio guide & cues</span>
+                    </span>
+                  </label>
+                  
+                  <label class="radio-card">
+                    <input type="radio" name="access-mode" value="hearing">
+                    <span class="radio-text">
+                      <span class="title">Hearing Adapt</span>
+                      <span class="desc">Sign avatar & summaries</span>
+                    </span>
+                  </label>
+                  
+                  <label class="radio-card">
+                    <input type="radio" name="access-mode" value="cognitive">
+                    <span class="radio-text">
+                      <span class="title">Cognitive Adapt</span>
+                      <span class="desc">Plain text & visual icons</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- AI Template Indicator Info -->
+              <div class="ai-status-card">
+                <div class="ai-status-header">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>AI Template Diagnostics</strong>
+                </div>
+                <div class="ai-status-details">
+                  <div>Document: <span id="diag-doc-type" class="badge-neutral">Medical Summary</span></div>
+                  <div>Template Applied: <span id="diag-template" class="badge-accent">Health Worker</span></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="popup-footer">
+              <span>SpeakPublic Browser Extension Mockup v1.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Webpage Viewport -->
+        <div class="simulator-viewport">
+          <div class="viewport-browser-bar">
+            <div class="viewport-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="viewport-address-bar">
+              <i class="fa-solid fa-lock text-success"></i>
+              <span id="viewport-url">https://apex.municipal.gov/discharge-summary</span>
+            </div>
+            <div class="viewport-reload">
+              <i class="fa-solid fa-rotate-right"></i>
+            </div>
+          </div>
+
+          <!-- Webpage Content Box -->
+          <div class="viewport-content" id="viewport-webpage-root">
+            
+            <!-- Target document will render here dynamically -->
+            <div id="simulated-document-container">
+              <!-- Loaded dynamically by app.js -->
+            </div>
+            
+            <!-- Float-overlay Sign Language Avatar Panel (Only displays in Hearing Mode) -->
+            <div id="hearing-avatar-widget" class="avatar-widget-panel hidden">
+              <div class="widget-header">
+                <span><i class="fa-solid fa-sign-language"></i> ISL/ASL Interpreter</span>
+                <button class="btn-close-widget" id="close-avatar-widget"><i class="fa-solid fa-times"></i></button>
+              </div>
+              <div class="widget-canvas-container">
+                <canvas id="avatar-canvas" width="240" height="240"></canvas>
+              </div>
+              <div class="widget-caption" id="avatar-caption">
+                Hover or click document sections to prompt sign sentences.
+              </div>
+            </div>
+
+            <!-- Audio Narrator Widget (Displays in Visual Mode) -->
+            <div id="visual-audio-bar" class="audio-control-bar hidden">
+              <button class="btn-audio-action" id="btn-audio-play"><i class="fa-solid fa-circle-play"></i> Play Structured Audio Guide</button>
+              <button class="btn-audio-action hidden" id="btn-audio-pause"><i class="fa-solid fa-circle-pause"></i> Pause Guide</button>
+              <div class="audio-progress">
+                <div class="audio-progress-bar" id="audio-progress-indicator" style="width: 0%;"></div>
+              </div>
+              <div class="audio-narration-status" id="audio-text-status">
+                Not playing - click play to guide through steps.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Universal Device Access CTA -->
+  <section id="universal-access" style="background: #3C3489; color: white; padding: 40px 0; text-align: center;">
+    <div class="container">
+      <h2>Use on any device</h2>
+      <p style="margin-bottom: 20px;">Scan to use SpeakPublic on your phone, tablet, or any browser.</p>
+      <div style="font-size: 24px; margin-bottom: 20px;">
+        <i class="fa-solid fa-mobile-screen"></i> 📱 Mobile · 
+        <i class="fa-solid fa-laptop"></i> 💻 Laptop · 
+        <i class="fa-solid fa-desktop"></i> 🖥️ Desktop · 
+        <i class="fa-solid fa-tablet"></i> 📟 Tablet
+      </div>
+      <a href="#webapp-section" class="btn-primary" style="background: white; color: #3C3489;">Open Universal Web App</a>
+    </div>
+  </section>
+
+  <section id="webapp-section" style="background: #f7f8fc; padding: 60px 0;">
+    <div class="container">
+      <div class="section-title text-center">
+        <h2>Universal Language Simplifier</h2>
+        <p>Paste text, fetch a URL, or upload a file to generate simplified content in your preferred language.</p>
+      </div>
+
+      <div class="glass-card" style="max-width: 1100px; margin: 0 auto; padding: 30px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between;">
+          <div style="flex: 1; min-width: 220px;">
+            <label for="app-lang" style="font-weight: 700; display: block; margin-bottom: 8px; color: #3C3489;">Preferred Language</label>
+            <select id="app-lang" class="form-select">
+              <option value="Tamil">Tamil</option>
+              <option value="Hindi">Hindi</option>
+              <option value="Bengali">Bengali</option>
+              <option value="Odia">Odia</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="result-tabs converter-tabs" style="margin-top: 30px;">
+          <button class="rtab active converter-tab" onclick="switchInput('paste', this)">Paste Text</button>
+          <button class="rtab converter-tab" onclick="switchInput('url', this)">Enter URL</button>
+          <button class="rtab converter-tab" onclick="switchInput('upload', this)">Upload File</button>
+        </div>
+
+        <div id="mode-paste" class="converter-input-mode active" style="margin-top: 24px;">
+          <textarea id="paste-input" placeholder="Paste any text, form, notice, or document here..." style="width:100%; min-height:220px; padding:18px; border-radius:12px; border:1px solid #d1d5db; font-size:16px; font-family: 'Inter', sans-serif; box-sizing:border-box;"></textarea>
+          <button class="btn-primary" style="margin-top:18px; width: 220px;" onclick="processText()">Convert to Simple Language</button>
+        </div>
+
+        <div id="mode-url" class="converter-input-mode" style="margin-top: 24px; display:none;">
+          <input type="text" id="url-input" placeholder="https://www.example-govt-site.gov.in/notice" style="width:100%; padding:18px; border-radius:12px; border:1px solid #d1d5db; font-size:16px; box-sizing:border-box; margin-bottom:18px;">
+          <button class="btn-primary" style="width: 220px;" onclick="fetchUrl()">Fetch and Convert</button>
+        </div>
+
+        <div id="mode-upload" class="converter-input-mode" style="margin-top: 24px; display:none;">
+          <div class="dropzone" onclick="document.getElementById('file-upload').click()" style="padding: 40px; border-radius: 16px; border: 2px dashed #cbd5e1; background: #ffffff; color: #475569; cursor: pointer; text-align:center;">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 38px; margin-bottom: 15px;"></i>
+            <p style="margin: 0 0 8px; font-size: 16px;">Drag and drop or click to upload</p>
+            <p style="font-size: 13px; color: #64748b;">Supports PDF, DOCX, TXT, PNG</p>
+          </div>
+          <input type="file" id="file-upload" style="display: none;" onchange="uploadFile(this)">
+        </div>
+
+        <div id="results" class="converter-results-area" style="display:none; margin-top:34px;">
+          <div class="result-tabs" style="border-bottom: 1px solid #e5e7eb;">
+            <button class="rtab active" onclick="switchRes('simple', this)">Simplified</button>
+            <button class="rtab" onclick="switchRes('actions', this)">Actions</button>
+            <button class="rtab" onclick="switchRes('voice', this)">Voice Q&A</button>
+          </div>
+          <div class="result-content" id="res-content" style="padding: 24px; min-height: 220px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 16px 16px; color: #334155; line-height: 1.7;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Form Video Guide Section -->
+  <section id="form-video-section" style="background: #EEEDFE; padding: 60px 0;">
+    <div class="container">
+      <div class="section-title text-center">
+        <h2 style="color: #3C3489;">Form Video Guide</h2>
+        <p style="color: #1a1a1a;">Paste any form and we'll create a step-by-step video guide in your language</p>
+      </div>
+      
+      <div class="glass-card" style="max-width: 800px; margin: 0 auto; background: white; padding: 30px;">
+        <textarea id="form-guide-input" rows="6" class="form-input-area" placeholder="Paste your form content here..." style="width: 100%; margin-bottom: 20px;"></textarea>
+        
+        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+          <select id="form-guide-lang" class="form-input-select" style="flex: 1;">
+            <option value="Tamil">Tamil (தமிழ்)</option>
+            <option value="Hindi">Hindi (हिंदी)</option>
+            <option value="Bengali">Bengali (বাংলা)</option>
+            <option value="Telugu">Telugu (తెలుగు)</option>
+          </select>
+          <select id="form-guide-type" class="form-input-select" style="flex: 1;">
+            <option value="government_form">Government Form</option>
+            <option value="bank_form">Bank Form</option>
+            <option value="hospital_form">Hospital Form</option>
+            <option value="application_form">Application Form</option>
+          </select>
+          <button id="generate-guide-btn" class="btn-primary" style="background: #3C3489; color: white;">Generate Guide</button>
+        </div>
+
+        <!-- Video Player Area -->
+        <div id="form-video-player" style="display: none; background: #1a1a1a; border-radius: 12px; overflow: hidden; position: relative;">
+          <!-- Slide content -->
+          <div id="video-slide" style="padding: 40px; min-height: 300px; color: white; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+            <div id="step-badge" style="position: absolute; top: 20px; left: 20px; background: #3C3489; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Step 1</div>
+            <div id="slide-title" style="font-size: 14px; opacity: 0.8; margin-bottom: 10px;">Form Title</div>
+            <h3 id="slide-field" style="font-size: 28px; font-weight: bold; margin-bottom: 20px;">Field Name</h3>
+            <p id="slide-what" style="font-size: 18px; margin-bottom: 20px;">What to write</p>
+            <div id="slide-example" style="border: 2px solid #1D9E75; padding: 15px; border-radius: 8px; display: inline-block; margin: 0 auto; margin-bottom: 20px;">Example Value</div>
+            <div id="slide-tip" style="background: #FAEEDA; color: #1a1a1a; padding: 10px; border-radius: 6px; font-size: 14px; display: none;">Tip text</div>
+          </div>
+          
+          <!-- Controls -->
+          <div style="background: #2a2a2a; padding: 15px; display: flex; justify-content: space-between; align-items: center; color: white;">
+            <button id="video-prev" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px;"><i class="fa-solid fa-backward"></i></button>
+            <button id="video-play-pause" style="background: none; border: none; color: white; cursor: pointer; font-size: 24px;"><i class="fa-solid fa-play"></i></button>
+            <button id="video-next" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px;"><i class="fa-solid fa-forward"></i></button>
+            <span id="video-counter" style="margin: 0 20px;">Step 1 of X</span>
+            <button id="video-speak" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px;"><i class="fa-solid fa-volume-high"></i></button>
+          </div>
+          <!-- Progress bar -->
+          <div style="height: 4px; background: #444; width: 100%;">
+            <div id="video-progress" style="height: 100%; background: #1D9E75; width: 0%; transition: width 0.3s;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community Correction Portal -->
+  <section id="community-section">
+    <div class="container">
+      <div class="section-title text-center">
+        <h2>Community-Driven Idiom Calibration</h2>
+        <p>AI translation works best when enriched by locals. Check recent community submissions and add corrections for local phrasings.</p>
+      </div>
+
+      <div class="community-grid">
+        
+        <!-- Submissions Table Card -->
+        <div class="glass-card community-table-card">
+          <h3>Active Calibration Feed</h3>
+          <div class="table-container">
+            <table class="corrections-table">
+              <thead>
+                <tr>
+                  <th>Document Type</th>
+                  <th>Original Legal/Jargon Text</th>
+                  <th>Community Idiom Correction</th>
+                  <th>Submitted By</th>
+                  <th>Community Votes</th>
+                </tr>
+              </thead>
+              <tbody id="corrections-table-body">
+                <!-- Loaded from data.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add Correction Form Card -->
+        <div class="glass-card community-form-card">
+          <h3>Submit an Idiom Correction</h3>
+          <p>Help refine the translation for your regional dialect by replacing strict dictionary words with colloquial phrasing local health/social workers use.</p>
+          
+          <form id="idiom-correction-form">
+            <div class="form-group">
+              <label for="form-doc-type">Document Category</label>
+              <select id="form-doc-type" class="form-input-select" required>
+                <option value="Hospital Discharge Summary">Hospital Discharge Summary</option>
+                <option value="Ration Card Renewal Form">Ration Card Renewal Form</option>
+                <option value="Primary School Enrollment Notice">Primary School Enrollment Notice</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="form-lang">Target Language</label>
+              <select id="form-lang" class="form-input-select" required>
+                <option value="Tamil">Tamil (தமிழ்)</option>
+                <option value="Odia">Odia (ଓଡ଼ିଆ)</option>
+                <option value="Bhojpuri">Bhojpuri (भोजपुरी)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="form-original-text">Official/Jargon Sentence</label>
+              <textarea id="form-original-text" rows="2" class="form-input-area" placeholder="Enter dense wording (e.g. Tab. Paracetamol QDS PRN...)" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="form-corrected-text">Simplified Local Phrasing</label>
+              <textarea id="form-corrected-text" rows="2" class="form-input-area" placeholder="Enter colloquial phrasing (e.g. पारासिटामोल बुखार भा टांका दरद अइला पर...)" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="form-contributor">Your Name / Role (Optional)</label>
+              <input type="text" id="form-contributor" class="form-input-text" placeholder="e.g. S. Kumar (Village Health Worker)">
+            </div>
+
+            <button type="submit" class="btn-primary btn-full"><i class="fa-solid fa-paper-plane"></i> Submit Calibration</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-container">
+      <div class="footer-brand">
+        <div class="logo">
+          <i class="fa-solid fa-people-arrows logo-icon"></i>
+          <span class="logo-text">Speak<span>Public</span></span>
+        </div>
+        <p>Ensuring public information actually reaches citizens, breaking language and format barriers alike.</p>
+      </div>
+      <div class="footer-links-group">
+        <h4>Simulations</h4>
+        <a href="#simulator-section" onclick="setSimDoc('hospital_discharge')">Discharge Summary</a>
+        <a href="#simulator-section" onclick="setSimDoc('ration_card')">Ration Card</a>
+        <a href="#simulator-section" onclick="setSimDoc('school_admission')">School Notice</a>
+      </div>
+      <div class="footer-links-group">
+        <h4>Accessibility Modes</h4>
+        <a href="#simulator-section" onclick="setSimAccess('visual')">Visual Adapt (Audio)</a>
+        <a href="#simulator-section" onclick="setSimAccess('hearing')">Hearing Adapt (Sign)</a>
+        <a href="#simulator-section" onclick="setSimAccess('cognitive')">Cognitive Adapt (Plain)</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 SpeakPublic Project. Dedicated to Inclusive Public Information Systems.</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="avatar.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Form Video Guide Logic
+    const btnGenerate = document.getElementById('generate-guide-btn');
+    const inputArea = document.getElementById('form-guide-input');
+    const langSelect = document.getElementById('form-guide-lang');
+    const typeSelect = document.getElementById('form-guide-type');
+    const videoPlayer = document.getElementById('form-video-player');
+    const slideField = document.getElementById('slide-field');
+    const slideWhat = document.getElementById('slide-what');
+    const slideExample = document.getElementById('slide-example');
+    const stepBadge = document.getElementById('step-badge');
+    const slideTip = document.getElementById('slide-tip');
+    const videoCounter = document.getElementById('video-counter');
+    const progressBar = document.getElementById('video-progress');
+    
+    let currentGuide = null;
+    let currentStepIndex = 0;
+    
+    if (btnGenerate) {
+      btnGenerate.addEventListener('click', async () => {
+        if (!inputArea.value) { alert('Please paste a form first!'); return; }
+        
+        btnGenerate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+        btnGenerate.disabled = true;
+        
+        try {
+          const res = await fetch('/api/generate-form-guide', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ form_text: inputArea.value, language: langSelect.value, form_type: typeSelect.value })
+          });
+          
+          currentGuide = await res.json();
+          currentStepIndex = 0;
+          
+          // Display player
+          videoPlayer.style.display = 'block';
+          renderStep();
+          
+        } catch(e) {
+          alert('Failed to generate guide. Is the backend running on port 3001?');
+        } finally {
+          btnGenerate.innerHTML = 'Generate Guide';
+          btnGenerate.disabled = false;
+        }
+      });
+    }
+
+    function renderStep() {
+      if (!currentGuide || !currentGuide.steps || currentGuide.steps.length === 0) return;
+      const step = currentGuide.steps[currentStepIndex];
+      
+      stepBadge.innerText = `Step ${step.step_number || currentStepIndex + 1}`;
+      document.getElementById('slide-title').innerText = currentGuide.form_title || 'Form Guide';
+      slideField.innerText = step.field_name || '';
+      slideWhat.innerText = step.what_to_write || '';
+      slideExample.innerText = `E.g., ${step.example || ''}`;
+      
+      if (step.tip) {
+        slideTip.innerText = `Tip: ${step.tip}`;
+        slideTip.style.display = 'inline-block';
+      } else {
+        slideTip.style.display = 'none';
+      }
+      
+      videoCounter.innerText = `Step ${currentStepIndex + 1} of ${currentGuide.steps.length}`;
+      progressBar.style.width = `${((currentStepIndex + 1) / currentGuide.steps.length) * 100}%`;
+    }
+
+    if (document.getElementById('video-prev')) {
+      document.getElementById('video-prev').addEventListener('click', () => {
+        if(currentStepIndex > 0) { currentStepIndex--; renderStep(); }
+      });
+    }
+
+    if (document.getElementById('video-next')) {
+      document.getElementById('video-next').addEventListener('click', () => {
+        if(currentGuide && currentStepIndex < currentGuide.steps.length - 1) { currentStepIndex++; renderStep(); }
+      });
+    }
+
+    const API_BASE = '/api';
+    let currentText = '';
+
+    function switchInput(mode, element) {
+      document.querySelectorAll('.converter-tab').forEach(tab => tab.classList.remove('active'));
+      if (element) element.classList.add('active');
+      document.querySelectorAll('.converter-input-mode').forEach(modeEl => modeEl.style.display = 'none');
+      const selected = document.getElementById('mode-' + mode);
+      if (selected) selected.style.display = 'block';
+    }
+
+    async function switchRes(mode, element) {
+      if (element) {
+        document.querySelectorAll('#webapp-section .result-tabs .rtab').forEach(tab => tab.classList.remove('active'));
+        element.classList.add('active');
+      }
+      const resContent = document.getElementById('res-content');
+      if (!resContent) return;
+
+      if (mode === 'simple') {
+        resContent.innerHTML = `<h3>Simplified Text</h3><div style="white-space: pre-line; margin-top: 16px;">${window.lastText || 'No text processed yet.'}</div>`;
+      }
+      if (mode === 'actions') {
+        if(!currentText) {
+          resContent.innerHTML = '<p>Please convert some text first.</p>';
+          return;
+        }
+        resContent.innerHTML = 'Extracting actions...';
+        try {
+          const res = await fetch(API_BASE + '/extract-actions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: currentText, language: document.getElementById('app-lang').value })
+          });
+          const data = await res.json();
+          let html = '<h3>Action Checklist</h3><ul style="list-style:none; padding:0; margin:0;">';
+          (data.actions || []).forEach(a => {
+            html += `<li style="padding:12px; border:1px solid #e2e8f0; margin-bottom:12px; border-radius:12px; background:#f8fafc;">
+              <strong>${a.what}</strong><br>
+              <span style="color:#475569;"><i class="fa-solid fa-clock" style="color:#1D9E75;"></i> ${a.when}</span><br>
+              <span style="color:#475569;"><i class="fa-solid fa-location-dot" style="color:#3C3489;"></i> ${a.where}</span>
+            </li>`;
+          });
+          html += '</ul>';
+          resContent.innerHTML = html;
+        } catch (e) {
+          resContent.innerHTML = '<span style="color:red">Failed to extract actions.</span>';
+        }
+      }
+      if (mode === 'voice') {
+        resContent.innerHTML = `<div style="text-align:center; padding: 20px;"><button style="width: 80px; height: 80px; border-radius: 50%; background: #3C3489; color: white; border: none; font-size: 30px; cursor: pointer;" onclick="alert('Microphone activated! (Simulation)')"><i class="fa-solid fa-microphone"></i></button><p style="margin-top:12px; color:#475569;">Hold to speak</p></div>`;
+      }
+    }
+
+    async function processText() {
+      const text = document.getElementById('paste-input').value;
+      if (!text) return;
+      currentText = text;
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('res-content').innerHTML = 'Processing with SpeakPublic AI...';
+      try {
+        const res = await fetch(API_BASE + '/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, language: document.getElementById('app-lang').value })
+        });
+        const data = await res.json();
+        window.lastText = data.simplified || 'No simplified result.';
+        switchRes('simple', document.querySelectorAll('#webapp-section .result-tabs .rtab')[0]);
+      } catch (e) {
+        document.getElementById('res-content').innerHTML = '<span style="color:red">Error connecting to server. Make sure port 3001 is running.</span>';
+      }
+    }
+
+    async function fetchUrl() {
+      const url = document.getElementById('url-input').value;
+      if (!url) return;
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('res-content').innerHTML = 'Fetching URL...';
+      try {
+        const res = await fetch(API_BASE + '/fetch-url?url=' + encodeURIComponent(url));
+        const data = await res.json();
+        currentText = data.text;
+        window.lastText = `${data.title}\n\n${data.text}`;
+        switchRes('simple', document.querySelectorAll('#webapp-section .result-tabs .rtab')[0]);
+      } catch (e) {
+        document.getElementById('res-content').innerHTML = '<span style="color:red">Error fetching URL.</span>';
+      }
+    }
+
+    function uploadFile(input) {
+      if (input.files && input.files[0]) {
+        currentText = 'Extracted text from ' + input.files[0].name;
+        document.getElementById('results').style.display = 'block';
+        window.lastText = `Successfully extracted text from ${input.files[0].name}.\n\n(In full version, this displays the simplified output from Claude)`;
+        switchRes('simple', document.querySelectorAll('#webapp-section .result-tabs .rtab')[0]);
+      }
+    }
+
+    function simplifyMore() {
+      window.lastText = `Even simpler version:\n1. This is point 1.\n2. This is point 2.\n3. This is point 3.`;
+      switchRes('simple', document.querySelectorAll('#webapp-section .result-tabs .rtab')[0]);
+    }
+  </script>
+</body>
+</html>

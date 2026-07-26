@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpeakPublic WebApp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { margin: 0; font-family: 'Inter', sans-serif; display: flex; height: 100vh; background: #f8f9fa; color: #1a1a1a; overflow: hidden; }
+    /* Sidebar */
+    .sidebar { width: 240px; background: #3C3489; color: white; display: flex; flex-direction: column; transition: transform 0.3s; }
+    .sidebar-logo { padding: 20px; font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .nav-item { padding: 15px 20px; color: rgba(255,255,255,0.8); text-decoration: none; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; border-left: 4px solid #1D9E75; }
+    .sidebar-bottom { margin-top: auto; padding: 20px; }
+    .install-banner { background: #EEEDFE; color: #3C3489; padding: 15px; border-radius: 8px; text-align: center; font-weight: 500; font-size: 14px; cursor: pointer; margin-top: 15px; }
+    
+    /* Main Content */
+    .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+    .topbar { background: white; padding: 15px 30px; border-bottom: 1px solid #eee; display: flex; gap: 20px; align-items: center; }
+    .tab { padding: 10px 20px; cursor: pointer; font-weight: 500; color: #6b7280; border-bottom: 2px solid transparent; }
+    .tab.active { color: #3C3489; border-bottom-color: #3C3489; }
+    
+    .content-area { padding: 30px; max-width: 900px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    
+    /* Inputs */
+    .input-mode { display: none; }
+    .input-mode.active { display: block; }
+    textarea { width: 100%; min-height: 200px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Inter'; font-size: 16px; margin-bottom: 15px; resize: vertical; box-sizing: border-box;}
+    input[type="text"] { width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; margin-bottom: 15px; box-sizing: border-box;}
+    .btn-primary { background: #3C3489; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; }
+    .btn-primary:hover { background: #2a2460; }
+    
+    /* Dropzone */
+    .dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; color: #6b7280; cursor: pointer; background: #fafafa; }
+    .dropzone:hover { border-color: #3C3489; background: #EEEDFE; color: #3C3489; }
+    
+    /* Results */
+    .results-area { margin-top: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; display: none;}
+    .result-tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #eee; }
+    .rtab { padding: 15px 25px; cursor: pointer; font-weight: 500; color: #6b7280; }
+    .rtab.active { background: white; color: #3C3489; border-top: 3px solid #3C3489; }
+    .result-content { padding: 25px; line-height: 1.6; }
+    
+    /* Simplify */
+    .simplify-more-btn { width: 100%; padding: 12px; background: white; border: 1px solid #1D9E75; color: #1D9E75; border-radius: 6px; font-weight: 600; margin-top: 20px; cursor: pointer; }
+    
+    /* Mobile */
+    .mobile-fab { display: none; position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #3C3489; color: white; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 100; cursor: pointer; }
+    
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: 60px; flex-direction: row; z-index: 50; }
+      .sidebar-logo, .sidebar-bottom { display: none; }
+      .nav-item { flex: 1; justify-content: center; padding: 10px; flex-direction: column; gap: 5px; font-size: 10px; border-left: none; }
+      .nav-item:hover, .nav-item.active { border-left: none; border-top: 3px solid #1D9E75; background: #2a2460; }
+      .main-content { margin-bottom: 60px; }
+      .topbar { flex-direction: column; padding: 10px; gap: 5px; }
+      .tab { padding: 8px 10px; width: 100%; text-align: center; }
+      .mobile-fab { display: flex; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar / Bottom Bar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <i class="fa-solid fa-people-arrows"></i> SpeakPublic
+    </div>
+    <a href="#" class="nav-item active" onclick="switchSidebar('convert', this)"><i class="fa-solid fa-exchange-alt"></i> Convert</a>
+    <a href="#" class="nav-item" onclick="switchSidebar('actions', this)"><i class="fa-solid fa-list-check"></i> Actions</a>
+    <a href="#" class="nav-item" onclick="switchSidebar('guide', this)"><i class="fa-solid fa-video"></i> Guide</a>
+    <a href="#" class="nav-item" onclick="switchSidebar('visuals', this)"><i class="fa-solid fa-eye"></i> Visuals</a>
+    <a href="#" class="nav-item" onclick="switchSidebar('voice', this)"><i class="fa-solid fa-microphone"></i> Voice</a>
+    
+    <div class="sidebar-bottom">
+      <select id="app-lang" style="width: 100%; padding: 10px; border-radius: 6px; border: none; margin-bottom: 15px;">
+        <option value="Tamil">Tamil</option>
+        <option value="Hindi">Hindi</option>
+      </select>
+      <div class="install-banner">
+        <i class="fa-brands fa-chrome"></i> Install Extension
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="tab active" onclick="switchInput('paste')">Paste Text</div>
+      <div class="tab" onclick="switchInput('url')">Enter URL</div>
+      <div class="tab" onclick="switchInput('upload')">Upload File</div>
+    </div>
+    
+    <div class="content-area">
+      <!-- Paste Mode -->
+      <div id="mode-paste" class="input-mode active">
+        <textarea id="paste-input" placeholder="Paste any text, form, notice, or document here..."></textarea>
+        <button class="btn-primary" onclick="processText()">Convert to Simple Language</button>
+      </div>
+      
+      <!-- URL Mode -->
+      <div id="mode-url" class="input-mode">
+        <input type="text" id="url-input" placeholder="https://www.example-govt-site.gov.in/notice">
+        <button class="btn-primary" onclick="fetchUrl()">Fetch and Convert</button>
+      </div>
+      
+      <!-- Upload Mode -->
+      <div id="mode-upload" class="input-mode">
+        <div class="dropzone" onclick="document.getElementById('file-upload').click()">
+          <i class="fa-solid fa-cloud-arrow-up" style="font-size: 40px; margin-bottom: 15px;"></i>
+          <p>Drag and drop or click to upload</p>
+          <p style="font-size: 12px;">Supports PDF, DOCX, TXT, PNG</p>
+        </div>
+        <input type="file" id="file-upload" style="display: none;" onchange="uploadFile(this)">
+      </div>
+      
+      <!-- Results Area -->
+      <div id="results" class="results-area">
+        <div class="result-tabs">
+          <div class="rtab active" onclick="switchRes('simple')">Simplified</div>
+          <div class="rtab" onclick="switchRes('actions')">Actions</div>
+          <div class="rtab" onclick="switchRes('voice')">Voice Q&A</div>
+        </div>
+        <div class="result-content" id="res-content">
+          Loading...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-fab">
+    <i class="fa-solid fa-sliders"></i>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    
+    let currentText = '';
+    
+    function switchSidebar(mode, element) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      if (mode === 'convert') { switchInput('paste'); document.querySelector('.tab').click(); }
+      if (mode === 'actions' && currentText) switchRes('actions', document.querySelectorAll('.rtab')[1]);
+      if (mode === 'voice') switchRes('voice', document.querySelectorAll('.rtab')[2]);
+    }
+
+    function switchInput(mode) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.querySelectorAll('.input-mode').forEach(el => el.classList.remove('active'));
+      document.getElementById('mode-' + mode).classList.add('active');
+    }
+    
+    async function switchRes(mode, element) {
+      if(element) {
+        document.querySelectorAll('.rtab').forEach(t => t.classList.remove('active'));
+        element.classList.add('active');
+      }
+      
+      const resContent = document.getElementById('res-content');
+      
+      if(mode === 'simple') {
+        resContent.innerHTML = `<h3>Simplified Text</h3><p>${window.lastText || 'No text processed yet.'}</p><button class="simplify-more-btn" onclick="simplifyMore()">Simplify more →</button>`;
+      }
+      if(mode === 'actions') {
+        if(!currentText) {
+           resContent.innerHTML = '<p>Please convert some text first.</p>';
+           return;
+        }
+        resContent.innerHTML = 'Extracting actions...';
+        try {
+          const res = await fetch(API_BASE + '/extract-actions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: currentText, language: document.getElementById('app-lang').value })
+          });
+          const data = await res.json();
+          let html = '<h3>Action Checklist</h3><ul style="list-style:none; padding:0;">';
+          (data.actions || []).forEach(a => {
+            html += `<li style="padding:10px; border:1px solid #ccc; margin-bottom:10px; border-radius:5px;">
+              <strong>${a.what}</strong><br>
+              <i class="fa-solid fa-clock" style="color:#1D9E75;"></i> ${a.when}<br>
+              <i class="fa-solid fa-location-dot" style="color:#3C3489;"></i> ${a.where}
+            </li>`;
+          });
+          html += '</ul>';
+          resContent.innerHTML = html;
+        } catch(e) {
+          resContent.innerHTML = '<span style="color:red">Failed to extract actions.</span>';
+        }
+      }
+      if(mode === 'voice') {
+        resContent.innerHTML = `<div style="text-align:center; padding: 20px;"><button style="width: 80px; height: 80px; border-radius: 50%; background: #3C3489; color: white; border: none; font-size: 30px; cursor: pointer;" onclick="alert('Microphone activated! (Simulation)')"><i class="fa-solid fa-microphone"></i></button><p>Hold to speak</p></div>`;
+      }
+    }
+
+    async function processText() {
+      const text = document.getElementById('paste-input').value;
+      if(!text) return;
+      currentText = text;
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('res-content').innerHTML = 'Processing with SpeakPublic AI...';
+      
+      try {
+        const res = await fetch(API_BASE + '/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, language: document.getElementById('app-lang').value })
+        });
+        const data = await res.json();
+        window.lastText = `<span style="display:inline-block; padding:3px 8px; border-radius:4px; background:#EEEDFE; color:#3C3489; font-size:12px; margin-bottom:10px;">Reading Level: ${data.label}</span><br>Original text: ${text.substring(0, 300)}... <br><br><em>(In full version, this displays the simplified output from Claude)</em>`;
+        switchRes('simple', document.querySelectorAll('.rtab')[0]);
+      } catch (e) {
+        document.getElementById('res-content').innerHTML = '<span style="color:red">Error connecting to server. Make sure port 3001 is running.</span>';
+      }
+    }
+    
+    async function fetchUrl() {
+      const url = document.getElementById('url-input').value;
+      if(!url) return;
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('res-content').innerHTML = 'Fetching URL...';
+      
+      try {
+        const res = await fetch(API_BASE + '/fetch-url?url=' + encodeURIComponent(url));
+        const data = await res.json();
+        currentText = data.text;
+        window.lastText = `<strong>Extracted from:</strong> ${data.title}<br><br>${data.text.substring(0, 300)}...<br><br><em>(In full version, this displays the simplified output from Claude)</em>`;
+        switchRes('simple', document.querySelectorAll('.rtab')[0]);
+      } catch(e) {
+        document.getElementById('res-content').innerHTML = '<span style="color:red">Error fetching URL.</span>';
+      }
+    }
+    
+    function uploadFile(input) {
+      if(input.files && input.files[0]) {
+        currentText = "Extracted text from " + input.files[0].name;
+        document.getElementById('results').style.display = 'block';
+        window.lastText = `Successfully extracted text from ${input.files[0].name}. <br><br><em>(In full version, this displays the simplified output from Claude)</em>`;
+        switchRes('simple', document.querySelectorAll('.rtab')[0]);
+      }
+    }
+    
+    function simplifyMore() {
+      window.lastText = `<strong>Even simpler version:</strong><br>1. This is point 1.<br>2. This is point 2.<br>3. This is point 3.`;
+      switchRes('simple', document.querySelectorAll('.rtab')[0]);
+    }
+  </script>
+</body>
+</html>
