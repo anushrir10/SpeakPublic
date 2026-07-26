@@ -90,3 +90,11 @@ app.post('/api/generate-form-guide', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`SpeakPublic backend running on http://0.0.0.0:${PORT}`);
 });
+
+// Serve landing (React) build at /app so legacy index.html and new SPA both work
+const landingDist = path.join(__dirname, '..', 'landing', 'dist');
+app.use('/app', express.static(landingDist));
+
+app.get('/app/*', (req, res) => {
+  res.sendFile(path.join(landingDist, 'index.html'));
+});

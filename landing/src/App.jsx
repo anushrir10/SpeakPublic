@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import QRSection from './components/QRSection';
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -53,6 +54,7 @@ function App() {
           <div className="result-box">{result}</div>
         </div>
       </main>
+      <QRSection url={`${API_BASE}/app`} />
     </div>
   );
 }
