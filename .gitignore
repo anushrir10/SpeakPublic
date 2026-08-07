@@ -24,3 +24,7 @@ build/
 .next/
 out/
 coverage/
+# local cleanup / editor backups (never commit)
+_to_delete/
+*.bak
+*.bak[0-9]*

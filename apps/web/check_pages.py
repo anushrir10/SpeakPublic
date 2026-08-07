@@ -1,0 +1,12 @@
+import json, sys
+sys.stdout.reconfigure(encoding='utf-8')
+data = json.load(open('public/bio11_pages.json', encoding='utf-8'))
+# Show page 7 content (chapter 1 content)
+print("=== PAGE 7 ===")
+print(data[6]['text'][:800])
+print()
+print("=== PAGE 8 ===")
+print(data[7]['text'][:800])
+print()
+print("=== PAGE 2 ===")
+print(data[1]['text'][:800])

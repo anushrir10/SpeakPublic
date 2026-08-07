@@ -130,13 +130,15 @@ export const textbooks = [
     coverColor: "from-[#155E37] to-[#0A331C]",
     spineColor: "bg-[#051C0F]",
     author: "NCERT Editorial Board",
+    isPdf: true,
+    pdfUrl: "/bio11-split.pdf",
     pages: [
       // ──────────────────────────────────────────────
       // CHAPTER 1: THE LIVING WORLD (Pages 1–9 from kebo101.pdf)
       // ──────────────────────────────────────────────
       {
         pageNumber: 1,
-        title: "The Living World — Introduction",
+        title: "The Living World — Unit Opener & Overview",
         imageUrl: "/kebo101/page_01.png",
         originalText: `
           <h3>CHAPTER 1: THE LIVING WORLD</h3>
@@ -218,7 +220,7 @@ export const textbooks = [
       },
       {
         pageNumber: 2,
-        title: "The Living World — Ernst Mayr",
+        title: "The Living World — Ernst Mayr (1904–2004)",
         imageUrl: "/kebo101/page_02.png",
         originalText: `
           <h3>ERNST MAYR — The Darwin of the 20th Century</h3>
@@ -281,7 +283,7 @@ export const textbooks = [
       },
       {
         pageNumber: 3,
-        title: "The Living World — What is Living?",
+        title: "The Living World — Introduction & Diversity (1.1)",
         imageUrl: "/kebo101/page_03.png",
         originalText: `
           <h3>1.1 WHAT IS 'LIVING'?</h3>
@@ -364,7 +366,7 @@ export const textbooks = [
       },
       {
         pageNumber: 4,
-        title: "The Living World — Diversity & Need for Classification",
+        title: "The Living World — Nomenclature & Binomial Names",
         imageUrl: "/kebo101/page_04.png",
         originalText: `
           <h3>DIVERSITY IN THE LIVING WORLD</h3>
@@ -446,7 +448,7 @@ export const textbooks = [
       },
       {
         pageNumber: 5,
-        title: "The Living World — Binomial Nomenclature",
+        title: "The Living World — Classification, Taxa & Taxonomy",
         imageUrl: "/kebo101/page_05.png",
         originalText: `
           <h3>BINOMIAL NOMENCLATURE</h3>
@@ -516,7 +518,7 @@ export const textbooks = [
       },
       {
         pageNumber: 6,
-        title: "The Living World — Systematics & Taxonomic Categories",
+        title: "The Living World — Taxonomic Categories & Species (1.2)",
         imageUrl: "/kebo101/page_06.png",
         originalText: `
           <h3>1.2 TAXONOMIC CATEGORIES</h3>
@@ -598,7 +600,7 @@ export const textbooks = [
       },
       {
         pageNumber: 7,
-        title: "The Living World — Species, Genus, Family, Order",
+        title: "The Living World — Genus, Family, Order, Class, Phylum",
         imageUrl: "/kebo101/page_07.png",
         originalText: `
           <h3>1.2.1–1.2.4 TAXONOMIC CATEGORIES: Species to Order</h3>
@@ -665,7 +667,7 @@ export const textbooks = [
       },
       {
         pageNumber: 8,
-        title: "The Living World — Class, Phylum & Kingdom + Table",
+        title: "The Living World — Kingdom & Taxonomic Hierarchy",
         imageUrl: "/kebo101/page_08.png",
         originalText: `
           <h3>1.2.5–1.2.7 CLASS, PHYLUM AND KINGDOM</h3>
@@ -924,6 +926,8 @@ export const textbooks = [
     coverColor: "from-[#27AE60] to-[#1E8449]",
     spineColor: "bg-[#145A32]",
     author: "NCERT Editorial Board",
+    isPdf: true,
+    pdfUrl: "/bio12-ch1-5.pdf",
     pages: [
       {
         pageNumber: 1,

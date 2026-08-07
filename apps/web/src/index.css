@@ -310,16 +310,49 @@ h1, h2, h3, h4, h5, h6 {
 .book-shelf-shadow { box-shadow: none; }
 
 .book-cover {
-  perspective: 1200px;
+  perspective: 1600px;
   transform-style: preserve-3d;
-  transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.35s ease, filter 0.35s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.book-cover:hover {
-  transform: translateY(-14px) rotateY(-12deg);
-  box-shadow: -14px 22px 34px -12px rgba(31, 30, 29, 0.4);
-  filter: saturate(1.05);
+.book-cover:hover { transform: translateY(-8px); }
+.book-cover:active { transform: translateY(-3px); }
+
+/* Cover that swings open on its spine like a real book (hover/focus) */
+.book-flip-cover {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
+  z-index: 2;
+  will-change: transform;
 }
-.book-cover:active { transform: translateY(-4px) rotateY(-3deg); }
+.book-cover:hover .book-flip-cover,
+.book-cover:focus-within .book-flip-cover {
+  transform: rotateY(-58deg);
+  box-shadow: -26px 16px 46px -16px rgba(0, 0, 0, 0.55);
+}
+/* First inside page, revealed as the cover opens */
+.book-inside {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px 8px 8px 4px;
+  background: linear-gradient(135deg, #FBFAF7 0%, #ECE6D8 100%);
+  box-shadow: inset 16px 0 24px -16px rgba(0,0,0,0.30), inset 0 0 0 1px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 1.25rem;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-flip-cover { transition: none; }
+  .book-cover:hover .book-flip-cover, .book-cover:focus-within .book-flip-cover { transform: rotateY(0deg); }
+}
 
 .book-spine-effect {
   position: absolute;
@@ -509,6 +542,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 .animate-flip-left { animation: page-flip-left 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 .animate-flip-right { animation: page-flip-right 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* Smooth page-to-page transition (both panes slide together in travel direction) */
+@keyframes page-next {
+  0% { opacity: 0; transform: translateX(34px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes page-prev {
+  0% { opacity: 0; transform: translateX(-34px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-page-next { animation: page-next 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-page-prev { animation: page-prev 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

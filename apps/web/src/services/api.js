@@ -73,6 +73,22 @@ export const fetchPageOcr = async (src) => {
   }
 };
 
+// ─── Live AI Q&A (Week 3) ────────────────────────────────
+// POST /api/ask — grounded answer for a question about a selected passage.
+// Body: { query, selection, topK }. Returns
+//   { answer, citations:[{ chunkId, sectionRef, content, similarity }], grounded }
+// on success, or null on failure (network / server error).
+export const askQuestion = async (query, selection = "", topK = 5) => {
+  if (!query) return null;
+  try {
+    const { data } = await api.post("/api/ask", { query, selection, topK });
+    return data ?? null;
+  } catch (err) {
+    console.warn("[api] askQuestion failed:", err.message);
+    return null;
+  }
+};
+
 // ─── Chapters & Chunks (Week 2) ──────────────────────────
 // GET /api/chapters — list all chapters, ordered by number.
 // Returns Chapter[] ({ id, number, title, subject, grade }) or null on failure.

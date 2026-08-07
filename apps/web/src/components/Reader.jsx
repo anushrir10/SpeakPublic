@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLearning } from "../context/LearningContext";
 import { CaretLeft, CaretRight, BookOpen, FileText, ArrowLeft, Stack, FloppyDisk, Trash, X, Sparkle, MagnifyingGlass, CursorText, NotePencil, ArrowRight, ChatCircleDots, Cards, TextAa } from "@phosphor-icons/react";
-import { retrieveContent, reviewFlashcard as apiReviewFlashcard } from "../services/api";
+import { retrieveContent } from "../services/api";
 import { useChapters } from "../hooks/useChapters";
 import { useChunks } from "../hooks/useChunks";
 import { useFlashcards } from "../hooks/useFlashcards";
@@ -14,6 +14,7 @@ import ChapterNav from "./ChapterNav";
 import ContextualPanel from "./ContextualPanel";
 import ScanTextLayer from "./ScanTextLayer";
 import { usePageOcr } from "../hooks/usePageOcr";
+import PDFReaderLayer from "./PDFReaderLayer";
 
 export default function Reader() {
   const {
@@ -37,13 +38,12 @@ export default function Reader() {
   const [reviewCount, setReviewCount] = useState(0);
   const [badgeAnimate, setBadgeAnimate] = useState(false);
 
-  // Wrap reviewFlashcard to track count for the badge
-  const trackReview = useCallback(async (cardId, rating) => {
-    const result = await apiReviewFlashcard(cardId, rating);
-    setReviewCount(prev => prev + 1);
+  // Bump the analytics badge when a flashcard is reviewed. The deck fires the
+  // FSRS review API itself; this only tracks the per-session count for the badge.
+  const handleReviewed = useCallback(() => {
+    setReviewCount((prev) => prev + 1);
     setBadgeAnimate(true);
     setTimeout(() => setBadgeAnimate(false), 700);
-    return result;
   }, []);
 
   // Contextual "Ask" side panel — the shell Week 3 AI Q&A streams into
@@ -65,11 +65,14 @@ export default function Reader() {
   // Slide-out left sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Note-taking text input for current selection
-  const [noteInput, setNoteInput] = useState("");
+  // PDF Viewer state
+  const [pdfNumPages, setPdfNumPages] = useState(null);
+  const [pdfPageText, setPdfPageText] = useState("");
 
-  // Dictionary lookup definition
-  const [customDefinition, setCustomDefinition] = useState("");
+  // Callback when PDFReaderLayer extracts text from the current page
+  const handlePageText = useCallback((pageNum, text) => {
+    setPdfPageText(text || "");
+  }, []);
 
   // Retrieved passages from POST /api/retrieve for the current selection.
   const [retrieveResults, setRetrieveResults] = useState(null);
@@ -114,7 +117,7 @@ export default function Reader() {
   // page stays individually navigable. currentPage is computed defensively so
   // the chapter/chunk hooks below can run before the early return.
   const currentPage = activeBook
-    ? (activeBook.pages.find((p) => p.pageNumber === activePageNum) || activeBook.pages[0])
+    ? (activeBook.pages?.find((p) => p.pageNumber === activePageNum) || activeBook.pages?.[0] || {})
     : null;
 
   // Loose title match: the "The Living World" chapter matches the
@@ -131,7 +134,15 @@ export default function Reader() {
   const chapterForPage = (page) =>
     (liveMode && page && navChapters.find((c) => titleMatches(page.title, c.title))) || null;
   const activeChapter = liveMode ? (chapterForPage(currentPage) || navChapters[0] || null) : null;
-  const activeChapterId = activeChapter?.id ?? null;
+  // Nav-bar highlight source. In live mode it follows the page-derived
+  // activeChapter. In fallback mode there is no live chapter, so map the CURRENT
+  // PAGE to its local section by page number — this is what keeps the nav bar in
+  // sync as you page through the book or jump via the dropdown.
+  const activeChapterId = liveMode
+    ? (activeChapter?.id ?? null)
+    : (navChapters.find((c) => c.__pageNumber === activePageNum)?.id
+        ?? navChapters[0]?.id
+        ?? null);
 
   // A page shows LIVE chunks only when it maps to a chapter; otherwise it falls
   // back to the local per-page summary.
@@ -281,24 +292,31 @@ export default function Reader() {
   // Chapter selection: local sections jump to a page; live chapters swap the
   // active chapter id (useChunks then fetches /api/chunks for it).
   const handleSelectChapter = (chapter) => {
+    // Resolve the target page for the chosen chapter/section.
+    let targetPage = null;
     if (chapter.__local) {
-      if (chapter.__pageNumber) setActivePageNum(chapter.__pageNumber);
-      return;
+      targetPage = chapter.__pageNumber ?? null;
+    } else {
+      const firstPage = activeBook.pages.find((p) => titleMatches(p.title, chapter.title));
+      targetPage = firstPage ? firstPage.pageNumber : 1;
     }
-    // Live: jump to the first local page that belongs to the chosen chapter.
-    const firstPage = activeBook.pages.find((p) => titleMatches(p.title, chapter.title));
-    setActivePageNum(firstPage ? firstPage.pageNumber : 1);
+    if (targetPage == null || targetPage === activePageNum || isFlipping) return;
+
+    // Navigate with the same smooth directional transition as Prev/Next, and
+    // reset the reading pane to the top so the jump is clearly felt.
+    setIsFlipping(targetPage > activePageNum ? "next" : "prev");
+    setActivePageNum(targetPage);
+    setTimeout(() => setIsFlipping(null), 450);
+    requestAnimationFrame(() => {
+      if (summaryContainerRef.current) summaryContainerRef.current.scrollTop = 0;
+      if (bookContainerRef.current) bookContainerRef.current.scrollTop = 0;
+    });
   };
 
   // Open the contextual Ask panel for the current selection
   const handleAsk = (text = selectionText) => {
     if (!text) return;
-    // Fire the retrieve call to the backend (non-blocking; Week 3 renders results)
-    retrieveContent(text).then((result) => {
-      if (result && !result.message?.includes("coming soon")) {
-        console.log("[FixIt] Retrieved related content:", result);
-      }
-    });
+    // Open the Ask FixIt panel; it runs POST /api/ask itself when a question is sent.
     setAskSelection(text);
     setAskOpen(true);
   };
@@ -340,15 +358,6 @@ export default function Reader() {
     
     // Clear selection
     window.getSelection()?.removeAllRanges();
-  };
-
-  // Save custom study note
-  const handleSaveNote = () => {
-    if (!selectionText) return;
-    setUserNotes(prev => ({
-      ...prev,
-      [selectionText]: noteInput
-    }));
   };
 
   // Delete saved highlight and corresponding note
@@ -468,31 +477,24 @@ export default function Reader() {
 
   // Synchronized page flipping animation triggers
   const handleNextPage = () => {
-    if (activePageNum < activeBook.pages.length) {
+    const totalPages = activeBook?.isPdf ? (pdfNumPages || 1) : (activeBook?.pages?.length || 1);
+    if (activePageNum < totalPages && !isFlipping) {
       setIsFlipping("next");
-      setTimeout(() => {
-        setActivePageNum(activePageNum + 1);
-      }, 300); // Swap page content at 90-degree edge-on midpoint
-      setTimeout(() => {
-        setIsFlipping(null);
-      }, 600); // Complete rotation
+      setActivePageNum(activePageNum + 1);
+      setTimeout(() => setIsFlipping(null), 450);
     }
   };
 
   const handlePrevPage = () => {
-    if (activePageNum > 1) {
+    if (activePageNum > 1 && !isFlipping) {
       setIsFlipping("prev");
-      setTimeout(() => {
-        setActivePageNum(activePageNum - 1);
-      }, 300); // Swap page content at midpoint
-      setTimeout(() => {
-        setIsFlipping(null);
-      }, 600);
+      setActivePageNum(activePageNum - 1);
+      setTimeout(() => setIsFlipping(null), 450);
     }
   };
 
   return (
-    <div className="h-screen w-screen desk-wood flex flex-col relative select-none overflow-hidden p-3 md:p-5">
+    <div className="h-screen w-screen desk-wood flex flex-col relative select-none overflow-hidden p-3 md:p-5 gap-2 md:gap-3">
       
       {/* LEFT DRAWER STUDY SIDEBAR PANEL */}
       <div
@@ -747,7 +749,7 @@ export default function Reader() {
           </button>
           <AnalyticsBadge reviewCount={reviewCount} animate={badgeAnimate} />
           <span className="text-xs font-body text-stone-500 font-medium">
-            Page {activePageNum} of {activeBook.pages.length}
+            Page {activePageNum} of {activeBook?.isPdf ? (pdfNumPages || "...") : (activeBook?.pages?.length || 1)}
           </span>
           <ThemeToggle start="top-right" />
         </div>
@@ -782,7 +784,7 @@ export default function Reader() {
       </div>
 
       {/* Main Workspace (Split View Book Desk - centered and scaled larger) */}
-      <div className="flex-1 w-full max-w-[94vw] mx-auto my-3 flex gap-0 relative items-stretch overflow-hidden rounded-2xl border border-[#E6E2D6] shadow-[0_20px_50px_-28px_rgba(31,30,29,0.35)] bg-white select-none">
+      <div className="flex-1 w-full max-w-[94vw] mx-auto flex gap-0 relative items-stretch overflow-hidden rounded-2xl border border-[#E6E2D6] shadow-[0_20px_50px_-28px_rgba(31,30,29,0.35)] bg-white select-none">
         
         {/* LEFT PAGE: scanned page OR selectable text (hidden on mobile if summary active) */}
         <div
@@ -790,10 +792,10 @@ export default function Reader() {
           onMouseUp={handleTextSelection}
           className={`flex-1 printed-page page-stack-left rounded-l-lg flex flex-col overflow-hidden bg-[#FBFAF7] relative border-r border-[#E6E2D6] ${
             mobileTab === "book" ? "flex" : "hidden md:flex"
-          } ${isFlipping ? "animate-flip-left" : ""}`}
+          } ${isFlipping === "next" ? "animate-page-next" : isFlipping === "prev" ? "animate-page-prev" : ""}`}
         >
           {/* Scan / Text view toggle — only when both a scan and text exist */}
-          {currentPage.imageUrl && currentPage.originalText && (
+          {!activeBook?.isPdf && currentPage?.imageUrl && currentPage?.originalText && (
             <div className="flex items-center justify-end px-3 pt-3 shrink-0 select-none">
               <div className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-[#F2EFE7] border border-[#E6E2D6]">
                 {["scan", "text"].map((v) => (
@@ -812,7 +814,14 @@ export default function Reader() {
             </div>
           )}
 
-          {currentPage.imageUrl && (leftView === "scan" || !currentPage.originalText) ? (
+          {activeBook?.isPdf ? (
+            <PDFReaderLayer 
+              url={activeBook.pdfUrl} 
+              pageNumber={activePageNum} 
+              onDocumentLoadSuccess={({ numPages }) => setPdfNumPages(numPages)}
+              onPageTextExtracted={handlePageText}
+            />
+          ) : currentPage?.imageUrl && (leftView === "scan" || !currentPage?.originalText) ? (
             <div className="flex-1 w-full flex items-center justify-center p-4 overflow-auto">
               {pageOcr && pageOcr.tokens?.length > 0 ? (
                 <ScanTextLayer
@@ -860,7 +869,7 @@ export default function Reader() {
           onMouseUp={handleTextSelection}
           className={`flex-1 bg-[#FFFFFF] page-stack-right rounded-r-lg p-6 md:p-8 flex flex-col justify-between overflow-y-auto index-card relative select-text ${
             mobileTab === "summary" ? "flex" : "hidden md:flex"
-          } ${isFlipping ? "animate-flip-right" : ""}`}
+          } ${isFlipping === "next" ? "animate-page-next" : isFlipping === "prev" ? "animate-page-prev" : ""}`}
           style={{ userSelect: "text" }}
         >
           <div className="flex-1 flex flex-col justify-start">
@@ -907,7 +916,31 @@ export default function Reader() {
 
             {/* Live chapter chunks from /api/chunks; local interactive summary otherwise */}
             <div className="prose max-w-none">
-              {livePage ? (
+              {activeBook?.isPdf && !currentPage?.interactiveSummary ? (
+                pdfPageText ? (
+                  <div className="space-y-4">
+                    {pdfPageText.split(/(?<=[.!?])\s+/).reduce((paragraphs, sentence) => {
+                      const last = paragraphs[paragraphs.length - 1];
+                      if (!last || last.length > 300) {
+                        paragraphs.push(sentence);
+                      } else {
+                        paragraphs[paragraphs.length - 1] = last + ' ' + sentence;
+                      }
+                      return paragraphs;
+                    }, []).map((para, idx) => (
+                      <p key={idx} className="mb-3 leading-relaxed text-sm md:text-base text-stone-800">
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3 animate-pulse">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className="h-3.5 rounded-full bg-stone-200" style={{ width: `${92 - (i % 3) * 12}%` }} />
+                    ))}
+                  </div>
+                )
+              ) : livePage ? (
                 chunksLoading && !liveChunks ? (
                   <div className="space-y-3 animate-pulse">
                     {[...Array(6)].map((_, i) => (
@@ -959,10 +992,10 @@ export default function Reader() {
                     ))
                   )
                 ) : (
-                  parseInteractiveText(currentPage.interactiveSummary)
+                  parseInteractiveText(currentPage?.interactiveSummary || "")
                 )
               ) : (
-                parseInteractiveText(currentPage.interactiveSummary)
+                parseInteractiveText(currentPage?.interactiveSummary || "")
               )}
             </div>
           </div>
@@ -1009,15 +1042,15 @@ export default function Reader() {
         </button>
 
         <div className="bg-[#F2EFE7] border border-[#E6E2D6] px-4 py-1.5 rounded-full text-xs font-body text-stone-600 font-medium">
-          Page {activePageNum} of {activeBook.pages.length}
+          Page {activePageNum} of {activeBook?.isPdf ? (pdfNumPages || "...") : (activeBook?.pages?.length || 1)}
         </div>
 
         <button
           id="page-next"
           onClick={handleNextPage}
-          disabled={activePageNum === activeBook.pages.length || isFlipping !== null}
+          disabled={activePageNum === (activeBook?.isPdf ? (pdfNumPages || 1) : (activeBook?.pages?.length || 1)) || isFlipping !== null}
           className={`flex items-center gap-1.5 px-4 py-2 font-body text-sm font-medium tracking-wide rounded-xl border transition-all cursor-pointer ${
-            activePageNum === activeBook.pages.length || isFlipping !== null
+            activePageNum === (activeBook?.isPdf ? (pdfNumPages || 1) : (activeBook?.pages?.length || 1)) || isFlipping !== null
               ? "bg-stone-100 text-stone-300 border-stone-200 cursor-not-allowed"
               : "bg-white border-[#E6E2D6] text-stone-700 hover:border-clay/50 hover:text-clay-dark active:translate-y-[1px]"
           }`}
@@ -1045,6 +1078,7 @@ export default function Reader() {
       <DBFlashcardDeck
         open={deckOpen}
         flashcards={deckFlashcards}
+        onReviewed={handleReviewed}
         chapterTitle={
           liveMode && activeChapter
             ? `${activeChapter.title} — ${activeChapter.subject}`

@@ -65,7 +65,12 @@ export default function Library() {
                   className="w-44 h-64 cursor-pointer relative book-cover flex-shrink-0"
                 >
                   {/* Book Body */}
-                  <div className={`w-full h-full rounded-l-md bg-gradient-to-br ${book.coverColor} p-4 flex flex-col justify-between shadow-2xl relative border-r border-[#ffffff20]`}>
+                  <div className="book-inside">
+                    <span className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-heading">FixIt</span>
+                    <span className="text-sm font-heading text-stone-700 leading-tight mt-2">{book.title}</span>
+                    <span className="mt-3 text-[9px] uppercase tracking-wider text-clay font-semibold">Open to read &rarr;</span>
+                  </div>
+                  <div className={`book-flip-cover w-full h-full rounded-l-md bg-gradient-to-br ${book.coverColor} p-4 flex flex-col justify-between shadow-2xl border-r border-[#ffffff20]`}>
                     
                     {/* 3D Spine effect shadow overlay */}
                     <div className="book-spine-effect"></div>
@@ -125,7 +130,12 @@ export default function Library() {
                 className="w-44 h-64 cursor-pointer relative book-cover flex-shrink-0"
               >
                 {/* Book Body */}
-                <div className={`w-full h-full rounded-l-md bg-gradient-to-br ${book.coverColor} p-4 flex flex-col justify-between shadow-2xl relative border-r border-[#ffffff20]`}>
+                <div className="book-inside">
+                    <span className="text-[9px] uppercase tracking-[0.2em] text-stone-400 font-heading">FixIt</span>
+                    <span className="text-sm font-heading text-stone-700 leading-tight mt-2">{book.title}</span>
+                    <span className="mt-3 text-[9px] uppercase tracking-wider text-clay font-semibold">Open to read &rarr;</span>
+                  </div>
+                  <div className={`book-flip-cover w-full h-full rounded-l-md bg-gradient-to-br ${book.coverColor} p-4 flex flex-col justify-between shadow-2xl border-r border-[#ffffff20]`}>
                   
                   {/* Spine & Pages */}
                   <div className="book-spine-effect"></div>

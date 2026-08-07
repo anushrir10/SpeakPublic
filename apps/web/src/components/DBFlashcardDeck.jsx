@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Cards, ArrowLeft, ArrowRight, CheckCircle, WarningCircle, Sparkle } from "@phosphor-icons/react";
+import { useState, useEffect } from "react";
+import { X, Cards, ArrowLeft, ArrowRight, CheckCircle, WarningCircle, Sparkle, Eye } from "@phosphor-icons/react";
 import confetti from "canvas-confetti";
 import { reviewFlashcard, logAnalyticsEvent } from "../services/api";
 
@@ -15,12 +15,21 @@ import { reviewFlashcard, logAnalyticsEvent } from "../services/api";
  *   chapterTitle– string label
  *   onClose     – close handler
  */
-export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, onClose }) {
+export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, onClose, onReviewed }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [completed, setCompleted] = useState([]); // array of booleans
+  const [finished, setFinished] = useState(false); // session-complete state
+
+  // Close on Escape (keyboard accessibility)
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") onClose?.(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   if (!open || flashcards.length === 0) return null;
 
@@ -42,6 +51,7 @@ export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, o
     // Fire FSRS review (non-blocking)
     reviewFlashcard(card.id, rating);
     logAnalyticsEvent("review", card.chunkId, { rating, cardType: card.type });
+    onReviewed?.();
 
     if (rating >= 3) {
       confetti({ particleCount: 60, spread: 50, origin: { y: 0.55 }, scalar: 0.8 });
@@ -54,7 +64,7 @@ export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, o
     // Advance after a short pause
     setTimeout(() => {
       if (isLastCard) {
-        onClose();
+        setFinished(true);
       } else {
         setCurrentIdx(currentIdx + 1);
         setIsFlipped(false);
@@ -83,15 +93,72 @@ export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, o
       setSelectedOption(null);
       setSubmitted(false);
     } else {
-      onClose();
+      setFinished(true);
     }
   };
 
+  const resetDeck = () => {
+    setCurrentIdx(0);
+    setIsFlipped(false);
+    setSelectedOption(null);
+    setSubmitted(false);
+    setCompleted([]);
+    setFinished(false);
+  };
+
   const progress = ((currentIdx) / flashcards.length) * 100;
+  const dueRemaining = flashcards.length - currentIdx;
+
+  if (finished) {
+    const reviewed = completed.filter((v) => v !== undefined).length;
+    const known = completed.filter((v) => v === true).length;
+    return (
+      <div role="dialog" aria-modal="true" aria-label="Flashcard session complete" className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] flex items-center justify-center p-4 select-none">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_32px_80px_-20px_rgba(0,0,0,0.6)] p-8 text-center animate-card-in">
+          <div className="w-14 h-14 rounded-2xl bg-clay-tint mx-auto flex items-center justify-center mb-4">
+            <CheckCircle className="w-7 h-7 text-clay" weight="duotone" />
+          </div>
+          <h3 className="font-heading text-2xl text-stone-800 font-semibold">Session complete</h3>
+          <p className="text-sm text-stone-500 mt-1">{chapterTitle}</p>
+          <div className="grid grid-cols-3 gap-3 my-6">
+            <div className="rounded-2xl bg-[#FBFAF7] border border-[#E6E2D6] py-4">
+              <div className="text-2xl font-heading font-bold text-stone-800">{reviewed}</div>
+              <div className="text-[10px] uppercase tracking-wider text-stone-400 mt-1">Reviewed</div>
+            </div>
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 py-4">
+              <div className="text-2xl font-heading font-bold text-emerald-600">{known}</div>
+              <div className="text-[10px] uppercase tracking-wider text-emerald-500 mt-1">Known</div>
+            </div>
+            <div className="rounded-2xl bg-red-50 border border-red-200 py-4">
+              <div className="text-2xl font-heading font-bold text-red-500">{reviewed - known}</div>
+              <div className="text-[10px] uppercase tracking-wider text-red-400 mt-1">Again</div>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              id="db-deck-again"
+              onClick={resetDeck}
+              className="flex-1 py-3 rounded-xl border border-[#E6E2D6] text-stone-700 font-semibold text-sm hover:bg-stone-50 transition cursor-pointer"
+            >
+              Review again
+            </button>
+            <button
+              id="db-deck-done"
+              onClick={onClose}
+              className="flex-1 py-3 rounded-xl bg-clay text-white font-semibold text-sm hover:bg-clay-dark transition cursor-pointer"
+            >
+              Done
+            </button>
+          </div>
+          <p className="text-[10px] text-stone-400 mt-4">Ratings synced with spaced-repetition scheduling</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] flex items-center justify-center p-4 md:p-8 select-none">
-      <div className="w-full max-w-2xl flex flex-col gap-4 animate-card-in">
+    <div role="dialog" aria-modal="true" aria-label="Flashcard review" className="fixed inset-0 bg-black/70 backdrop-blur-md z-[60] flex items-center justify-center p-4 md:p-8 select-none">
+      <div className="w-full max-w-3xl flex flex-col gap-5 animate-card-in">
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -102,14 +169,15 @@ export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, o
             <div>
               <p className="text-white/90 text-sm font-heading font-semibold leading-none">{chapterTitle}</p>
               <p className="text-white/50 text-[10px] font-body mt-0.5">
-                Card {currentIdx + 1} of {flashcards.length}
+                Card {currentIdx + 1} of {flashcards.length} · {dueRemaining} due
               </p>
             </div>
           </div>
           <button
             id="db-deck-close"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition cursor-pointer"
+            aria-label="Close flashcards"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
             <X className="w-4 h-4" />
           </button>
@@ -136,92 +204,96 @@ export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, o
                 {isQA ? "Q & A" : "MCQ"}
               </span>
             </div>
-            {/* Progress dots */}
-            <div className="flex items-center gap-1">
-              {flashcards.map((_, i) => (
-                <div
-                  key={i}
-                  className={`rounded-full transition-all duration-300 ${
-                    i === currentIdx
-                      ? "w-4 h-2 bg-clay"
-                      : completed[i] === true
-                      ? "w-2 h-2 bg-emerald-400"
-                      : completed[i] === false
-                      ? "w-2 h-2 bg-red-300"
-                      : "w-2 h-2 bg-stone-200"
-                  }`}
-                />
-              ))}
-            </div>
+            {/* Clean progress (replaces the cluttered 44-dot row) */}
+            <span className="text-[11px] font-body font-semibold text-stone-400 tabular-nums">
+              {currentIdx + 1} / {flashcards.length}
+            </span>
           </div>
 
           {/* ── Q&A Flip Card ── */}
           {isQA && (
-            <div className="px-6 py-6">
+            <div className="px-7 py-7">
               <div
                 id="db-flashcard-flip"
                 onClick={handleFlip}
-                className={`w-full h-56 flip-card cursor-pointer ${isFlipped ? "is-flipped" : ""}`}
+                role="button"
+                tabIndex={0}
+                aria-label={isFlipped ? "Flip card back to the question" : "Reveal the answer"}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleFlip(); } }}
+                className={`w-full h-72 flip-card cursor-pointer rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/50 ${isFlipped ? "is-flipped" : ""}`}
               >
                 <div className="flip-card-inner">
                   {/* Front */}
-                  <div className="flip-card-front bg-[#FBFAF7] border border-[#E6E2D6] p-7 flex flex-col justify-between shadow-sm">
+                  <div className="flip-card-front bg-[#FBFAF7] border border-[#E6E2D6] p-6 flex flex-col shadow-sm">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400">Question</span>
-                    <p className="text-center text-stone-800 font-heading text-xl leading-snug px-2">
-                      {card.question}
-                    </p>
-                    <span className="text-center text-[10px] text-stone-400 italic">Click to reveal answer</span>
+                    <div className="flex-1 flex items-center justify-center">
+                      <p className="text-center text-stone-800 font-heading text-2xl leading-snug px-2">
+                        {card.question}
+                      </p>
+                    </div>
                   </div>
                   {/* Back */}
-                  <div className="flip-card-back bg-clay-tint border border-clay/30 p-7 flex flex-col justify-between shadow-sm">
+                  <div className="flip-card-back bg-clay-tint border border-clay/30 p-6 flex flex-col shadow-sm">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-clay-dark">Answer</span>
-                    <p className="text-center text-stone-800 font-body text-base leading-relaxed px-2 overflow-y-auto">
-                      {card.answer}
-                    </p>
-                    <span className="text-center text-[10px] text-clay-dark italic">Click to flip back</span>
+                    <div className="flex-1 flex items-center justify-center overflow-y-auto">
+                      <p className="text-center text-stone-800 font-body text-base md:text-lg leading-relaxed px-2">
+                        {card.answer}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Rating buttons — shown after flip */}
               {isFlipped && (
-                <div className="mt-5 flex items-center gap-2.5 animate-fade-up">
+                <div className="mt-5 animate-fade-up">
+                  <p className="text-center text-[11px] font-body text-stone-400 mb-2.5">How well did you know it?</p>
+                  <div className="flex items-center gap-2.5">
                   <button
                     id="db-rating-hard"
                     onClick={() => handleRating(1)}
-                    className="flex-1 py-2.5 text-xs font-semibold font-body tracking-wide rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition cursor-pointer"
+                    className="flex-1 py-3 text-xs font-semibold font-body tracking-wide rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40 border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition cursor-pointer"
                   >
                     Again
                   </button>
                   <button
                     id="db-rating-medium"
                     onClick={() => handleRating(2)}
-                    className="flex-1 py-2.5 text-xs font-semibold font-body tracking-wide rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition cursor-pointer"
+                    className="flex-1 py-3 text-xs font-semibold font-body tracking-wide rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40 border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 transition cursor-pointer"
                   >
                     Hard
                   </button>
                   <button
                     id="db-rating-good"
                     onClick={() => handleRating(3)}
-                    className="flex-1 py-2.5 text-xs font-semibold font-body tracking-wide rounded-xl border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition cursor-pointer"
+                    className="flex-1 py-3 text-xs font-semibold font-body tracking-wide rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40 border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 transition cursor-pointer"
                   >
                     Good
                   </button>
                   <button
                     id="db-rating-easy"
                     onClick={() => handleRating(4)}
-                    className="flex-1 py-2.5 text-xs font-semibold font-body tracking-wide rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition cursor-pointer"
+                    className="flex-1 py-3 text-xs font-semibold font-body tracking-wide rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40 border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition cursor-pointer"
                   >
                     Easy
                   </button>
+                  </div>
                 </div>
               )}
 
               {!isFlipped && (
-                <div className="mt-4 flex justify-center">
+                <div className="mt-5 space-y-2.5">
+                  <button
+                    id="db-reveal"
+                    onClick={handleFlip}
+                    className="w-full py-3.5 rounded-xl bg-clay text-white font-body text-sm font-semibold tracking-wide flex items-center justify-center gap-2 shadow-sm hover:bg-clay-dark transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-clay/40"
+                  >
+                    <Eye className="w-4 h-4" weight="duotone" />
+                    Reveal answer
+                  </button>
                   <button
                     onClick={handleSkip}
-                    className="text-xs text-stone-400 hover:text-stone-600 transition cursor-pointer underline underline-offset-2"
+                    className="w-full text-center text-xs text-stone-400 hover:text-stone-600 transition cursor-pointer py-1"
                   >
                     Skip this card
                   </button>
@@ -232,8 +304,8 @@ export default function DBFlashcardDeck({ open, flashcards = [], chapterTitle, o
 
           {/* ── MCQ Card ── */}
           {isMCQ && (
-            <div className="px-6 py-6 space-y-4">
-              <p className="text-stone-800 font-heading text-base md:text-lg leading-snug">
+            <div className="px-7 py-7 space-y-4">
+              <p className="text-stone-800 font-heading text-lg md:text-xl leading-snug">
                 {card.question}
               </p>
               <div className="space-y-2">
